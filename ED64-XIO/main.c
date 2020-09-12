@@ -83,7 +83,7 @@ u8 demoMenu() {
 
         if (!cd.c[0].A)continue;
 
-        //browse files in root dir and launch the game
+        //browse files in root directory and launch the ROM
         if (selector == MENU_FILE_MANAGER) {
             resp = fmanager();
             if (resp)return resp;
@@ -104,7 +104,7 @@ u8 demoMenu() {
 
         //simple communication via USB. receive and transmit strings. 
         //Send some strings via virtual COM port and they will be printed on screen.
-        //string length should be multiple of 4
+        //string length should be a multiple of 4
         if (selector == MENU_USB_TERMINAL) {
             usbTerminal();
         }
@@ -188,7 +188,7 @@ void boot_simulator(u8 cic) {
     cheats_on = 0;
 
 
-    // Start game via CIC boot code
+    // Start ROM via CIC boot code
     asm __volatile__(
             ".set noreorder;"
 

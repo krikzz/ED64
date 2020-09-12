@@ -11,9 +11,9 @@
 
 #define DISK_ERR_INIT   0xD0
 #define DISK_ERR_CTO    0xD1
-#define DISK_ERR_RD1    0xD2//cmd tout
+#define DISK_ERR_RD1    0xD2//cmd timeout
 #define DISK_ERR_RD2    0xD2//io error
-#define DISK_ERR_WR1    0xD3//cmd tout
+#define DISK_ERR_WR1    0xD3//cmd timeout
 #define DISK_ERR_WR2    0xD3//io error
 
 u8 diskInit();

@@ -186,7 +186,7 @@ u8 diskReadResp(u8 cmd) {
     bi_sd_bitlen(1);
 
 
-    while ((sd_resp_buff[0] & 0xC0) != 0) {//wait for resp begin. first two bits should be zeros
+    while ((sd_resp_buff[0] & 0xC0) != 0) { //wait for resp begin. the first two bits should be zeros
         sd_resp_buff[0] = bi_sd_cmd_rd();
 
         if (i++ == DISK_CMD_TOUT)return DISK_ERR_CTO;

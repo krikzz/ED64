@@ -26,7 +26,7 @@ u8 fmanager() {
         for (int i = 0; i < MAX_DIR_SIZE && inf[i].fname[0]; i++) {
             gConsPrint(selector == i ? ">" : " ");
             u8 tmp = inf[i].fname[MAX_STR_LEN];
-            inf[i].fname[MAX_STR_LEN] = 0; //make sure that printed string isn't exceed max len
+            inf[i].fname[MAX_STR_LEN] = 0; //make sure that printed string doesn't exceed max length
             gAppendString(inf[i].fname);
             inf[i].fname[MAX_STR_LEN] = tmp;
         }
@@ -83,7 +83,7 @@ u8 fmLoadDir(u8 *path, FILINFO *inf, u32 max_items) {
 
         resp = f_readdir(&dir, &inf[i]);
         if (resp)return resp;
-        if (inf[i].fname[0] == 0)break; //no dir items anymore
+        if (inf[i].fname[0] == 0)break; //no directory items left
     }
 
     resp = f_closedir(&dir);
@@ -114,12 +114,12 @@ u8 fmLoadGame(u8 *path) {
     if (resp)return resp;
 
     if (header[1] == 0x80) {
-        //enable byte swapping for disk operations if rom image has swapped bytes order
+        //enable byte swapping for disk operations if rom image has swapped byte order
         //affect only reading to ROM address space
         bi_wr_swap(1);
     }
 
-    //warning! file can be readed directly to rom but not to bram
+    //WARNING! file can be read directly to rom but not to BRAM
     resp = f_read(&f, (void *) BI_ADDR_ROM, fsize, &br);
     if (resp)return resp;
 
