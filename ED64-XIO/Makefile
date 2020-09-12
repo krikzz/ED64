@@ -38,7 +38,7 @@ all: $(PROG_NAME).v64
 $(PROG_NAME).v64: $(PROG_NAME).elf
 	$(OBJCOPY) $(BDIR)/$(PROG_NAME).elf $(BDIR)/$(PROG_NAME).bin -O binary
 	$(RM) -f $(PROG_NAME).v64
-	$(N64TOOL) -l 256K -t "ED64-XIO-SAMPLE" -h $(RESDIR)/header -o $(PROG_NAME).v64 $(BDIR)/$(PROG_NAME).bin -s
+	$(N64TOOL) -l 256K -t $(PROG_NAME) -h $(RESDIR)/header -o $(PROG_NAME).v64 $(BDIR)/$(PROG_NAME).bin -s
 	$(ROMFIX64) $(PROG_NAME).v64
 
 $(PROG_NAME).elf : $(OBJ)
