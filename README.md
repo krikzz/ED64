@@ -7,7 +7,7 @@
 * Latest ED64 cartridge OS available from http://krikzz.com/pub/support/everdrive-64/x-series/OS/
 
 ## Developer Documentation
- [Table of Contents](docs/tableofcontents.md)
+ [Table of Contents](docs/table_of_contents.md)
 
 ## Folders
 ### [usb64](usb64)

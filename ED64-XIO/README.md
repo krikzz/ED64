@@ -1,6 +1,9 @@
 # EverDrive-64 programming samples
 FPGA firmware included in ED64 Menu OS version 3.04 or newer required to use this sample ROM.
 
+## Developer Documentation
+ [Table of Contents](docs/table_of_contents.md)
+
 ## Features:
 * Simple file manager and game loading from disk
 * Use files with FatFs lib
