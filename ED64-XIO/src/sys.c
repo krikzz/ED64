@@ -323,4 +323,3 @@ void gConsPrint(u8 *str) {
     g_last_y++;
     gAppendString(str);
 }
-

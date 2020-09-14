@@ -1,1 +1,2 @@
-#Using ED64 USB
+#Using the ED64 USB port
+

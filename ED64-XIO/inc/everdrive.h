@@ -21,4 +21,3 @@ u8 fileRead();
 u8 fileWrite();
 
 #endif	/* EVERDRIVE_H */
-

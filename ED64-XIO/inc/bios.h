@@ -79,4 +79,3 @@ u32 bi_get_cart_id();
 
 
 #endif	/* BIOS_H */
-

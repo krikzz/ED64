@@ -1,1 +1,2 @@
-#Using ED64 SD
+#Using the ED64 SD Card port
+
