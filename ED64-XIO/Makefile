@@ -7,8 +7,10 @@ FFDIR		:=ff
 SRCDIR		:=src
 INCDIR		:=inc
 RESDIR		:=res
+LDDIR		:=ldscripts
+HDDIR		:=headers
 ROMFIX64 =	./tools/romfix64
-LINK_FLAGS =	-L$(ROOTDIR)/lib -L$(ROOTDIR)/mips64-elf/lib -ldragon -lc -lm -lnosys -T $(RESDIR)/ed64.ld
+LINK_FLAGS =	-L$(ROOTDIR)/lib -L$(ROOTDIR)/mips64-elf/lib -ldragon -lc -lm -lnosys -T $(LDDIR)/ed64.ld
 PROG_NAME =	ED64-XIO-SAMPLE
 FLAGS =		-std=gnu99 -march=vr4300 -mtune=vr4300 -O2 -Wall -Wno-pointer-sign -I$(INCDIR) -I$(ROOTDIR)/include -I$(ROOTDIR)/mips64-elf/include -I$(ROOTDIR)/libdragon/include -Iedlib -I. -I$(FFDIR) -G0 
 FLAGS_VT =	-std=gnu99 -march=vr4300 -mtune=vr4300 -O0 -Wall -Wno-pointer-sign -I$(INCDIR) -I$(ROOTDIR)/include -I$(ROOTDIR)/mips64-elf/include -I$(ROOTDIR)/libdragon/include -Iedlib -I. -I$(FFDIR)
@@ -38,7 +40,7 @@ all: $(PROG_NAME).v64
 $(PROG_NAME).v64: $(PROG_NAME).elf
 	$(OBJCOPY) $(BDIR)/$(PROG_NAME).elf $(BDIR)/$(PROG_NAME).bin -O binary
 	$(RM) -f $(PROG_NAME).v64
-	$(N64TOOL) -l 256K -t $(PROG_NAME) -h $(RESDIR)/header -o $(PROG_NAME).v64 $(BDIR)/$(PROG_NAME).bin -s
+	$(N64TOOL) -l 256K -t $(PROG_NAME) -h $(HDDIR)/header -o $(PROG_NAME).v64 $(BDIR)/$(PROG_NAME).bin -s
 	$(ROMFIX64) $(PROG_NAME).v64
 
 $(PROG_NAME).elf : $(OBJ)
