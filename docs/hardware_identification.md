@@ -24,7 +24,7 @@ The ED64 Hardware revision can be identified using the following values
 This pseudo code shows you how it can be read by getting them from the Peripheral Interface:
 ```
     unsigned long register_read(unsigned short register)
-    {       
+    {
         return systemPI_read(&val, REGISTER_ADDRESS(register), 4);
     }
 

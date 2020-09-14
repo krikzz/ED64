@@ -7,10 +7,10 @@ The developer ID `ED` will cause the config to be loaded from the ROM header (on
 The ROM ID or CRC HI can be used for game detection (check "ROM Info" from the Everdrive OS menu for the value needed).
 
 The line is depicted in this order:
-| ROM ID / CRC HIGH | SAVE TYPE | CONFIG | DESCRIPTION                |
-|:-                 |---        |---     |---                         |
-|DD=                | 3         | 1      | All 64DD games SRAM+RTC    |
-|0xABA51D09=        | 1         | 2      | 40 Winks EEP4K+region-free |
+| ROM ID / CRC HIGH |   | SAVE TYPE | CONFIG |  | DESCRIPTION                |
+|:-                 |   |---        |---     |  |---                         |
+|DD                 | = | 3         | 1      |  | All 64DD games SRAM+RTC    |
+|0xABA51D09         | = | 1         | 2      |  | 40 Winks EEP4K+region-free |
 
 Upper records have priority over records below. 
 
