@@ -174,12 +174,12 @@ u8 bi_usb_rd(void *dst, u32 len) {
 
         blen = 512; //rx block len
         if (blen > len)blen = len;
-        baddr = 512 - blen; //address in fpga intrnal buffer. requested data lengt equal to 512-int buffer addr
+        baddr = 512 - blen; //address in fpga internal buffer. requested data length equal to 512-int buffer addr
 
 
-        bi_reg_wr(REG_USB_CFG, USB_CMD_RD | baddr); //usb read request. fpga will receive usb bytes till buffer address reach 512
+        bi_reg_wr(REG_USB_CFG, USB_CMD_RD | baddr); //usb read request. fpga will receive usb bytes until the buffer address reaches 512
 
-        resp = bi_usb_busy(); //wait till requested data amount will be transferred to the internal buffer
+        resp = bi_usb_busy(); //wait until requested data amount will be transferred to the internal buffer
         if (resp)break; //timeout
 
         sysPI_rd(dst, REG_ADDR(REG_USB_DAT + baddr), blen); //get data from internal buffer
@@ -202,14 +202,14 @@ u8 bi_usb_wr(void *src, u32 len) {
 
         blen = 512; //tx block len
         if (blen > len)blen = len;
-        baddr = 512 - blen; //address in fpga intrnal buffer. data lengt equal to 512-int buffer addr
+        baddr = 512 - blen; //address in fpga internal buffer. data length equal to 512-int buffer addr
 
         sysPI_wr(src, REG_ADDR(REG_USB_DAT + baddr), blen); //copy data to the internal buffer
         src += 512;
 
         bi_reg_wr(REG_USB_CFG, USB_CMD_WR | baddr); //usb write request
 
-        resp = bi_usb_busy(); //wait till requested data amount will be transferred
+        resp = bi_usb_busy(); //wait until the requested data amount is transferred
         if (resp)break; //timeout
 
         len -= blen;
@@ -248,7 +248,7 @@ void bi_sd_speed(u8 speed) {
     bi_reg_wr(REG_SD_STATUS, bi_sd_cfg);
 }
 u16 bi_old_sd_mode;
-//this function gives time for set stable values on open bus
+//this function gives time for setting stable values on open bus
 
 void bi_sd_switch_mode(u16 mode) {
 
@@ -538,7 +538,7 @@ void bi_game_cfg_set(u8 type) {
     bi_reg_wr(REG_GAM_CFG, type);
 }
 
-//swap bytes copied from SD card. affect only reads to ROM area
+//swaps bytes copied from SD card. only affects reads to ROM area
 void bi_wr_swap(u8 swap_on) {
 
     if (swap_on) {

@@ -65,8 +65,8 @@ void sysPI_wr_safe(void *ram, unsigned long pi_address, unsigned long len);
 
 
 static volatile struct PI_regs_s * const PI_regs = (struct PI_regs_s *) 0xa4600000;
-static volatile struct SI_regs_s * const SI_regs = (struct SI_regs_s *) 0xa4800000;
-static void * const PIF_RAM = (void *) 0x1fc007c0;
+//static volatile struct SI_regs_s * const SI_regs = (struct SI_regs_s *) 0xa4800000; //Un-used in sample
+//static void * const PIF_RAM = (void *) 0x1fc007c0; //Un-used in sample
 static vu32 *vregs = (vu32 *) 0xa4400000;
 BootStrap *sys_boot_strap = (BootStrap *) 0x80000300;
 

@@ -1,0 +1,17 @@
+# EverDrive-64 programming samples
+FPGA firmware included in ED64 Menu OS version 3.04 or newer required to use this sample ROM.
+
+## Features:
+* Simple file manager and game loading from disk
+* Use files with FatFs lib
+* USB communications
+* ED64 hardware version identification
+
+## Building:
+The sample currently relies on LibDragon, however its dependency is minimal and the source can be modified to use libUltra instead.
+
+### With CMake
+An example of how to build the sample using CMake (on Windows) can be found in the root directories azure-pipelines.yml file.
+
+### With Makefile
+A Makefile is included, but might need to be modified for your environment.

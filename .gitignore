@@ -1,0 +1,71 @@
+# Prerequisites
+*.d
+
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Linker output
+*.ilk
+*.map
+*.exp
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# Kernel Module Compile Results
+*.mod*
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+#VS
+.vs/
+
+#vscode
+#.vscode/
+
+toolchain/
+temp/
+build/
+
+*.bin
+*.v64
+
+!ED64-XIO/res/font64.bin
+
+# Keep for now, but need to check the following later:
+!ED64-XIO/tools/romfix64.exe
+!ED64-XIO/tools/usb64.exe
+!ED64-XIO/build/ED64-XIO.v64
