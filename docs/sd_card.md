@@ -1,3 +1,3 @@
-#Using the ED64 SD Card port
+# Using the ED64 SD Card port
 
-WIP!
+WIP! (Community contributions required)

@@ -1,6 +1,6 @@
 # Real Time Clock
 
-WIP!
+WIP! (Community contributions required)
 
 ## Setting the RTC
 
@@ -15,4 +15,4 @@ When emulating a game that uses the RTC, an entry needs to be present in the ED6
 An example for the 64DD would be a line entry:
 `DD=31		All 64DD games SRAM+RTC` which ensures that the RTC is enabled and that the save type is SRAM.
 
-
+Please refer to the [Config Database](rom_config_database.md) for more information.

@@ -1,14 +1,16 @@
-#ROM configuration database:
-An ID reserved for developers 'ED' With this ID cart will load config from ROM header (one byte at offset 0x3F)
+# ROM configuration database:
 
-
-The line is depicted in this order
-* First number for save type
-* Second number for game config.
-Note: The config options can be mixed using addition (1+2=3 for rtc+region).
+## Developer override
+The developer ID `ED` will cause the config to be loaded from the ROM header (one byte at offset 0x3F) instead of using the save database built into the ED64 menu.
 
 ## Usage
-ROM ID or CRC HI can be used for game detection. (check "ROM Info" menu for details). Identifiers should be entered without spaces.
+The ROM ID or CRC HI can be used for game detection (check "ROM Info" from the Everdrive OS menu for the value needed).
+
+The line is depicted in this order:
+| ROM ID / CRC HIGH | SAVE TYPE | CONFIG | DESCRIPTION                |
+|:-                 |---        |---     |---                         |
+|DD=                | 3         | 1      | All 64DD games SRAM+RTC    |
+|0xABA51D09=        | 1         | 2      | 40 Winks EEP4K+region-free |
 
 Upper records have priority over records below. 
 
@@ -23,11 +25,12 @@ Upper records have priority over records below.
 | 6 | SRAM 128K |
 
 
-| ID | config |
-|:-|---|
-| 0 | OFF |
-| 1 | Force RTC |
-| 2 | Region free ROM. Use native system region for game launch. For applications without region lock |
+Note: The CONFIG options can be mixed using addition (1+2=3 for rtc+region).
+| ID | config | Region? |
+|:-|---| --- |
+| 0 | OFF | |
+| 1 | Force RTC | |
+| 2 | Region free ROM. Use native system region for game launch. For applications without region lock | |
 
 
 ### Sample

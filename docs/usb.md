@@ -1,3 +1,3 @@
-#Using the ED64 USB port
+# Using the ED64 USB port
 
-WIP!
+WIP! (Community contributions required)
