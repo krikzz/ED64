@@ -10,9 +10,9 @@
  [Table of Contents](docs/tableofcontents.md)
 
 ## Folders
-### usb64
-Provides the reference source for USB communication between PC and Cartridge.
+### [usb64](usb64)
+Provides the reference source for USB communication between PC and ED64 development cartridge.
 
 
-### ED64-XIO
-Provides the reference source that can be used by homebrew developers to utilise SD card and USB capabilities via an ED64
+### [ED64-XIO](ED64-XIO)
+Provides the reference source that can be used by homebrew developers to utilise hardware functions including SD card and USB capabilities from an N64 ROM
