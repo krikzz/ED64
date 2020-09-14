@@ -1,7 +1,7 @@
 # Identifying an ED64 hardware revision
 
 Note: Cartridge menu OS versions prior to V3.04 will not work with this method.
-Note: There is no current way to know the cartridge revision over USB within the OS menu.
+Note: There is no current way to know the hardware revision over USB within the OS menu.
 Note: There is no current way to know the cartridge OS version within ROM or over USB within the OS menu.
 
 ## Pseudo code
