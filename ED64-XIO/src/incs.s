@@ -4,5 +4,3 @@
 .global font
 font:
 .incbin "../res/font64.bin"
-
-

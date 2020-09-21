@@ -150,4 +150,3 @@ void gRepaint();
 void gVsync();
 
 #endif	/* SYS_H */
-
