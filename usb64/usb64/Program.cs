@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.IO.Ports;
-
+using System.Text;
+using System.Reflection;
 
 namespace usb64
 {
@@ -12,58 +14,23 @@ namespace usb64
         static int pbar_interval = 0;
         static int pbar_ctr = 0;
 
+
         static void Main(string[] args)
         {
 
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            Console.WriteLine("usb64 v" + Assembly.GetEntryAssembly().GetName().Version);
 
             try
             {
-
-                connect();
-
-
-                long time = DateTime.Now.Ticks;
-
-                for (int i = 0; i < args.Length; i++)
-                {
-
-                    if (args[i].StartsWith("-fpga"))
-                    {
-                        cmdFpga(args[i]);
-                    }
-
-                    if (args[i].StartsWith("-rom"))
-                    {
-                        cmdLoadRom(args[i]);
-                    }
-
-                    if (args[i].StartsWith("-start"))
-                    {
-                        usbCmdStartApp();
-                    }
-
-                    if (args[i].StartsWith("-diag"))
-                    {
-                        cmdDiag();
-                    }
-
-                    if (args[i].StartsWith("-drom"))
-                    {
-                        cmdDumpRom(args[i]);
-                    }
-
-
-                }
-
-                time = (DateTime.Now.Ticks - time) / 10000;
-                Console.WriteLine("time: {0:D}.{1:D3}", time / 1000, time % 1000);
-                
+                usb64(args);
 
             }
             catch (Exception x)
             {
-                Console.WriteLine("");
                 Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("");
                 Console.WriteLine("ERROR: " + x.Message);
                 Console.ResetColor();
             }
@@ -73,6 +40,54 @@ namespace usb64
                 port.Close();
             }
             catch (Exception) { };
+        }
+
+        static void usb64(string[] args)
+        {
+
+            string rom_name = "default-usb-rom.v64";
+
+
+            connect();
+
+
+            long time = DateTime.Now.Ticks;
+
+            for (int i = 0; i < args.Length; i++)
+            {
+
+                if (args[i].StartsWith("-fpga"))
+                {
+                    cmdFpga(args[i]);
+                }
+
+                if (args[i].StartsWith("-rom"))
+                {
+                    rom_name = extractArg(args[i]);
+                    cmdLoadRom(args[i]);
+                }
+
+                if (args[i].StartsWith("-start"))
+                {
+                    usbCmdStartApp(rom_name);
+                }
+
+                if (args[i].StartsWith("-diag"))
+                {
+                    cmdDiag();
+                }
+
+                if (args[i].StartsWith("-drom"))
+                {
+                    cmdDumpRom(args[i]);
+                }
+
+
+            }
+
+            time = (DateTime.Now.Ticks - time) / 10000;
+            Console.WriteLine("timez: {0:D}.{1:D3}", time / 1000, time % 1000);
+
 
         }
 
@@ -168,12 +183,27 @@ namespace usb64
 
         static void cmdLoadRom(string cmd)
         {
-           
-            string arg = extractArg(cmd);
-            byte[] data = File.ReadAllBytes(arg);
+
+            string fname = extractArg(cmd);
+            byte[] data = File.ReadAllBytes(fname);
+            bool is_emu_rom;
+
+
+            if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37))
+            {
+                is_emu_rom = false;
+            }
+            else
+            {
+                is_emu_rom = true;
+            }
+
             UInt32 fill_val = isBootLoader(data) ? 0xffffffff : 0;
+            UInt32 base_addr = 0x10000000;
+            if (is_emu_rom) base_addr += 0x200000;
+
             usbCmdCmemFill(data.Length, fill_val);
-            usbCmdRomWR(data, 0x10000000);
+            usbCmdRomWR(data, base_addr);
         }
 
         static string extractArg(string cmd)
@@ -232,9 +262,17 @@ namespace usb64
             port.Write(cmd, 0, cmd.Length);
         }
 
-        static void usbCmdStartApp()
+        static void usbCmdStartApp(string fname)
         {
-            usbCmdTx('s');
+            byte[] fname_bytes = Encoding.ASCII.GetBytes(fname);
+            if (fname.Length >= 256) throw new Exception("file name is too long");
+            byte[] buff = new byte[256];
+            Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
+
+            //usbCmdTx('s');
+            usbCmdTx('s', 0, 0, 1);
+
+            usbWrite(buff);
         }
 
         static void usbCmdFpga(byte[] data)
