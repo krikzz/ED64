@@ -85,7 +85,7 @@ jobs:
     inputs:
       sourceFolder: $(Build.SourcesDirectory)/ED64-XIO/build
       contents: '*.v64' 
-      targetFolder: $(Build.ArtifactStagingDirectory)
+      targetFolder: $(Build.ArtifactStagingDirectory)/rom
       flattenFolders: true
     displayName: 'Copy ROM'
     continueOnError: false
@@ -115,25 +115,25 @@ jobs:
         configuration: 'release'
         #clean: false # Optional
         #maximumCpuCount: false # Optional
-        restoreNugetPackages: true # Optional
+        #restoreNugetPackages: true # Optional
         #msbuildArchitecture: 'x86' # Optional. Options: x86, x64
         #logProjectEvents: true # Optional
         #createLogFile: false # Optional
         #logFileVerbosity: 'normal' # Optional. Options: quiet, minimal, normal, detailed, diagnostic
 
-    # - task: CopyFiles@2
-    #   inputs:
-    #     sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin
-    #     contents: '**' 
-    #     targetFolder: $(Build.ArtifactStagingDirectory)
-    #     flattenFolders: true
-    #   displayName: 'Copy Application'
-    #   continueOnError: false
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin
+        contents: '**' 
+        targetFolder: $(Build.ArtifactStagingDirectory)/usb64
+        flattenFolders: true
+      displayName: 'Copy Application'
+      continueOnError: false
 
-    # - task: PublishBuildArtifacts@1
-    #   inputs:
-    #     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    #     artifactName: 'binaries/usb64' 
-    #     publishLocation: 'Container'
-    #   displayName: Publish Build Artifacts
-    #   continueOnError: false
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'binaries' 
+        publishLocation: 'Container'
+      displayName: Publish Build Artifacts
+      continueOnError: false
