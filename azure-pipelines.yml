@@ -1,5 +1,19 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include: ["master", "develop*", "release-*", "refs/tags/*" ]
+  paths:
+    exclude: [ "doc", "*.md", ".gitignore", "README.md" ]
+
+pr:
+  autoCancel: true
+
 jobs:
-- job: Windows
+- job: Windows_CMake_ROM
   pool:
     vmImage: 'windows-latest'
 
@@ -82,6 +96,47 @@ jobs:
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: 'binaries' 
+      publishLocation: 'Container'
+    displayName: Publish Build Artifacts
+    continueOnError: false
+
+##############################
+- job: Windows_USB_App
+
+  pool:
+    vmImage: 'windows-latest'
+  
+  steps:
+    # Visual Studio build
+    # Build with MSBuild and set the Visual Studio version property
+    - task: VSBuild@1
+      inputs:
+        solution: '**\*.sln' 
+        vsVersion: 'latest' # Optional. Options: latest, 16.0, 15.0, 14.0, 12.0, 11.0
+        #msbuildArgs: # Optional
+        #platform: # Optional
+        #configuration: # Optional
+        #clean: false # Optional
+        #maximumCpuCount: false # Optional
+        #restoreNugetPackages: false # Optional
+        #msbuildArchitecture: 'x86' # Optional. Options: x86, x64
+        #logProjectEvents: true # Optional
+        #createLogFile: false # Optional
+        #logFileVerbosity: 'normal' # Optional. Options: quiet, minimal, normal, detailed, diagnostic
+
+  - task: CopyFiles@2
+    inputs:
+      sourceFolder: $(Build.SourcesDirectory)/
+      contents: '*.exe' 
+      targetFolder: $(Build.ArtifactStagingDirectory)
+      flattenFolders: true
+    displayName: 'Copy Application'
+    continueOnError: false
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'binaries/app' 
       publishLocation: 'Container'
     displayName: Publish Build Artifacts
     continueOnError: false
