@@ -87,7 +87,7 @@ namespace usb64
 
                 if (args[i].StartsWith("-screen"))
                 {
-                    cmdRumpScreen(args[i]);
+                    cmdDumpScreen(args[i]);
                 }
 
 
@@ -99,7 +99,7 @@ namespace usb64
 
         }
 
-        static void cmdRumpScreen(string cmd)
+        static void cmdDumpScreen(string cmd)
         {
 
             byte[] data = usbCmdRamRD(0xA4400004, 512);//get get scrreen buffer address
