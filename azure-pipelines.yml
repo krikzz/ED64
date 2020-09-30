@@ -115,10 +115,10 @@ jobs:
         vsVersion: 'latest' # Optional. Options: latest, 16.0, 15.0, 14.0, 12.0, 11.0
         #msbuildArgs: # Optional
         #platform: # Optional
-        #configuration: # Optional
+        configuration: 'release'
         #clean: false # Optional
         #maximumCpuCount: false # Optional
-        #restoreNugetPackages: false # Optional
+        restoreNugetPackages: true # Optional
         #msbuildArchitecture: 'x86' # Optional. Options: x86, x64
         #logProjectEvents: true # Optional
         #createLogFile: false # Optional
@@ -126,8 +126,8 @@ jobs:
 
     - task: CopyFiles@2
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/
-        contents: '*.exe' 
+        sourceFolder: $(Build.SourcesDirectory)/usb64
+        contents: 'usb64/bin' 
         targetFolder: $(Build.ArtifactStagingDirectory)
         flattenFolders: true
       displayName: 'Copy Application'
