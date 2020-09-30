@@ -82,6 +82,11 @@ namespace usb64
                     cmdDumpRom(args[i]);
                 }
 
+                if (args[i].StartsWith("-screen"))
+                {
+                    cmdRumpScreen(args[i]);
+                }
+
 
             }
 
@@ -89,6 +94,21 @@ namespace usb64
             Console.WriteLine("timez: {0:D}.{1:D3}", time / 1000, time % 1000);
 
 
+        }
+
+        static void cmdRumpScreen(string cmd)
+        {
+
+            byte[] data = usbCmdRamRD(0xA4400004, 512);//get get scrreen buffer address
+            //Console.WriteLine(BitConverter.ToString(data));
+
+            int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+            int len = 320 * 240 * 2;
+            string arg = extractArg(cmd);
+
+            data = usbCmdRamRD((UInt32)(0x80000000 | addr), len);
+
+            File.WriteAllBytes(arg, data);
         }
 
 
@@ -312,6 +332,20 @@ namespace usb64
             usbCmdTx('R', addr, len, 0);
 
             Console.Write("ROM RD.");
+            pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
+            long time = DateTime.Now.Ticks;
+            byte[] data = usbRead(len);
+            time = DateTime.Now.Ticks - time;
+            Console.WriteLine("ok. speed: " + getSpeedStr(data.Length, time));
+            return data;
+        }
+
+        static byte[] usbCmdRamRD(UInt32 addr, int len)
+        {
+
+            usbCmdTx('r', addr, len, 0);
+
+            Console.Write("RAM RD.");
             pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = usbRead(len);
