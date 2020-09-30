@@ -37,7 +37,10 @@ namespace usb64
 
             try
             {
-                port.Close();
+                if (port != null && port.IsOpen)
+                {
+                    port.Close();
+                }
             }
             catch (Exception) { };
         }
