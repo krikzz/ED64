@@ -121,19 +121,19 @@ jobs:
         #createLogFile: false # Optional
         #logFileVerbosity: 'normal' # Optional. Options: quiet, minimal, normal, detailed, diagnostic
 
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin
-        contents: '**' 
-        targetFolder: $(Build.ArtifactStagingDirectory)
-        flattenFolders: true
-      displayName: 'Copy Application'
-      continueOnError: false
+    # - task: CopyFiles@2
+    #   inputs:
+    #     sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin
+    #     contents: '**' 
+    #     targetFolder: $(Build.ArtifactStagingDirectory)
+    #     flattenFolders: true
+    #   displayName: 'Copy Application'
+    #   continueOnError: false
 
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'binaries/usb64' 
-        publishLocation: 'Container'
-      displayName: Publish Build Artifacts
-      continueOnError: false
+    # - task: PublishBuildArtifacts@1
+    #   inputs:
+    #     pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    #     artifactName: 'binaries/usb64' 
+    #     publishLocation: 'Container'
+    #   displayName: Publish Build Artifacts
+    #   continueOnError: false
