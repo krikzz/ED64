@@ -29,7 +29,6 @@ jobs:
       destinationFolder: ED64-XIO/tools
       cleanDestinationFolder: false 
     displayName: 'Extract ninja build'
-    #condition: ne(variables.GCC_CACHE_RESTORED, 'true')
     continueOnError: false  
 
   - script: |
@@ -43,7 +42,6 @@ jobs:
       destinationFolder: ED64-XIO/toolchain/gcc-toolchain-mips64
       cleanDestinationFolder: false 
     displayName: 'Extract gcc-toolchain-mips64-win64'
-    #condition: ne(variables.GCC_CACHE_RESTORED, 'true')
     continueOnError: false
 
   - script: |
@@ -85,8 +83,8 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)/
-      contents: 'build\*.v64' 
+      sourceFolder: $(Build.SourcesDirectory)/ED64-XIO/build
+      contents: '*.v64' 
       targetFolder: $(Build.ArtifactStagingDirectory)
       flattenFolders: true
     displayName: 'Copy ROM'
@@ -101,14 +99,13 @@ jobs:
     continueOnError: false
 
 ##############################
-- job: Windows_USB_App
+- job: Windows_USB64_App
 
   pool:
     vmImage: 'windows-latest'
   
   steps:
-    # Visual Studio build
-    # Build with MSBuild and set the Visual Studio version property
+
     - task: VSBuild@1
       inputs:
         solution: '**\*.sln' 
