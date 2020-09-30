@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.IO.Ports;
 using System.Text;
@@ -18,7 +17,7 @@ namespace usb64
         static void Main(string[] args)
         {
 
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
 
             Console.WriteLine("usb64 v" + Assembly.GetEntryAssembly().GetName().Version);
 
