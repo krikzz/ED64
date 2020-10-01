@@ -104,12 +104,11 @@ namespace usb64
             byte[] data = usbCmdRamRD(0xA4400004, 512);// Get the scrreen buffer fom cartridge RAM
 
             int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-            int len = 320 * 240 * 2;
+            int len = 320 * 240 * 2; //the Menu only supports 320x240 resolution
             string arg = extractArg(cmd);
 
-            data = usbCmdRamRD((UInt32)(0x80000000 | addr), len);
-
-            File.WriteAllBytes(arg, data);
+            data = usbCmdRamRD((uint)(0x80000000 | addr), len);
+            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320,240, data));
         }
 
 
