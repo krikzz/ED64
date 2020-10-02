@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.IO.Ports;
 using System.Text;
@@ -18,9 +17,9 @@ namespace usb64
         static void Main(string[] args)
         {
 
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
 
-            Console.WriteLine("usb64 v" + Assembly.GetEntryAssembly().GetName().Version);
+            Console.WriteLine($"usb64 v { Assembly.GetEntryAssembly().GetName().Version}");
 
             try
             {
@@ -31,13 +30,16 @@ namespace usb64
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("");
-                Console.WriteLine("ERROR: " + x.Message);
+                Console.WriteLine($"ERROR: {x.Message}");
                 Console.ResetColor();
             }
 
             try
             {
-                port.Close();
+                if (port != null && port.IsOpen)
+                {
+                    port.Close();
+                }
             }
             catch (Exception) { };
         }
@@ -84,31 +86,29 @@ namespace usb64
 
                 if (args[i].StartsWith("-screen"))
                 {
-                    cmdRumpScreen(args[i]);
+                    cmdDumpScreenBuffer(args[i]);
                 }
 
 
             }
 
             time = (DateTime.Now.Ticks - time) / 10000;
-            Console.WriteLine("timez: {0:D}.{1:D3}", time / 1000, time % 1000);
+            Console.WriteLine("timezone: {0:D}.{1:D3}", time / 1000, time % 1000);
 
 
         }
 
-        static void cmdRumpScreen(string cmd)
+        static void cmdDumpScreenBuffer(string cmd)
         {
 
-            byte[] data = usbCmdRamRD(0xA4400004, 512);//get get scrreen buffer address
-            //Console.WriteLine(BitConverter.ToString(data));
+            byte[] data = usbCmdRamRD(0xA4400004, 512);// Get the scrreen buffer fom cartridge RAM
 
             int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-            int len = 320 * 240 * 2;
+            int len = 320 * 240 * 2; //the Menu only supports 320x240 resolution
             string arg = extractArg(cmd);
 
-            data = usbCmdRamRD((UInt32)(0x80000000 | addr), len);
-
-            File.WriteAllBytes(arg, data);
+            data = usbCmdRamRD((uint)(0x80000000 | addr), len);
+            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320,240, data));
         }
 
 
@@ -127,7 +127,7 @@ namespace usb64
 
             
 
-            Console.WriteLine("USB diag...");
+            Console.WriteLine("USB diagnostics...");
             for (int i = 0; i < 0x800000; i += buff1.Length)
             {
                 new Random().NextBytes(buff1);
@@ -136,14 +136,13 @@ namespace usb64
 
                 for (int u = 0; u < buff1.Length; u++)
                 {
-                    if (buff1[u] != buff2[u]) throw new Exception("USB diag error: " + (i + u));
+                    if (buff1[u] != buff2[u]) throw new Exception("USB diagnostics error: " + (i + u));
                 }
 
-               // Console.Write(".");
             }
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("USB diag is complete!");
+            Console.WriteLine("USB diagnostics is complete!");
             Console.ResetColor();
 
         }
@@ -164,7 +163,7 @@ namespace usb64
                     usbCmdTest();
                     port.ReadTimeout = 2000;
                     port.WriteTimeout = 2000;
-                    Console.WriteLine("ED64 found at port " + ports_list[i]);
+                    Console.WriteLine($"ED64 found at commport {ports_list[i]}");
                     return;
                 }
                 catch (Exception) { }
@@ -246,7 +245,7 @@ namespace usb64
             int crc_area = 0x100000 + 4096;
             if (rom_len >= crc_area) return;
 
-            Console.Write("Fill mem...");
+            Console.Write("Filling memory...");
             usbCmdTx('c', 0x10000000, crc_area, val);
             usbCmdTest();
             Console.WriteLine("ok");
@@ -303,7 +302,7 @@ namespace usb64
             Console.Write("FPGA config.");
             usbWrite(data);
             byte []resp = usbCmdRx('r');
-            if (resp[4] != 0) throw new Exception("FPGA configuration error: 0x" + BitConverter.ToString(new byte[] { resp[4] }));
+            if (resp[4] != 0) throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { resp[4] })}");
             Console.WriteLine("ok");
         }
 
@@ -336,7 +335,7 @@ namespace usb64
             long time = DateTime.Now.Ticks;
             byte[] data = usbRead(len);
             time = DateTime.Now.Ticks - time;
-            Console.WriteLine("ok. speed: " + getSpeedStr(data.Length, time));
+            Console.WriteLine($"OK. speed: {getSpeedStr(data.Length, time)}");
             return data;
         }
 
@@ -350,7 +349,7 @@ namespace usb64
             long time = DateTime.Now.Ticks;
             byte[] data = usbRead(len);
             time = DateTime.Now.Ticks - time;
-            Console.WriteLine("ok. speed: " + getSpeedStr(data.Length, time));
+            Console.WriteLine($"OK. speed: {getSpeedStr(data.Length, time)}");
             return data;
         }
 
@@ -368,7 +367,7 @@ namespace usb64
             usbWrite(data, 0, len);
             time = DateTime.Now.Ticks - time;
 
-            Console.WriteLine("ok. speed: " + getSpeedStr(data.Length, time));
+            Console.WriteLine($"OK. speed: {getSpeedStr(data.Length, time)}");
 
             return data;
         }
@@ -379,7 +378,7 @@ namespace usb64
             if (time == 0) time = 1;
             long speed = ((len / 1024) * 1000) / time;
 
-            return ("" + speed + " KB/s");
+            return ($"{speed} KB/s");
 
         }
 

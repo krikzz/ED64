@@ -1,5 +1,19 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include: ["master", "develop*", "release-*", "refs/tags/*" ]
+  paths:
+    exclude: [ "doc", "*.md", ".gitignore", "README.md" ]
+
+pr:
+  autoCancel: true
+
 jobs:
-- job: Windows
+- job: Windows_CMake_ROM
   pool:
     vmImage: 'windows-latest'
 
@@ -15,7 +29,6 @@ jobs:
       destinationFolder: ED64-XIO/tools
       cleanDestinationFolder: false 
     displayName: 'Extract ninja build'
-    #condition: ne(variables.GCC_CACHE_RESTORED, 'true')
     continueOnError: false  
 
   - script: |
@@ -29,7 +42,6 @@ jobs:
       destinationFolder: ED64-XIO/toolchain/gcc-toolchain-mips64
       cleanDestinationFolder: false 
     displayName: 'Extract gcc-toolchain-mips64-win64'
-    #condition: ne(variables.GCC_CACHE_RESTORED, 'true')
     continueOnError: false
 
   - script: |
@@ -71,9 +83,9 @@ jobs:
 
   - task: CopyFiles@2
     inputs:
-      sourceFolder: $(Build.SourcesDirectory)/
-      contents: 'build\*.v64' 
-      targetFolder: $(Build.ArtifactStagingDirectory)
+      sourceFolder: $(Build.SourcesDirectory)/ED64-XIO/build
+      contents: '*.v64' 
+      targetFolder: $(Build.ArtifactStagingDirectory)/rom
       flattenFolders: true
     displayName: 'Copy ROM'
     continueOnError: false
@@ -85,3 +97,43 @@ jobs:
       publishLocation: 'Container'
     displayName: Publish Build Artifacts
     continueOnError: false
+
+##############################
+- job: Windows_USB64_App
+
+  pool:
+    vmImage: 'windows-latest'
+  
+  steps:
+
+    - task: VSBuild@1
+      inputs:
+        solution: '**\*.sln' 
+        vsVersion: 'latest' # Optional. Options: latest, 16.0, 15.0, 14.0, 12.0, 11.0
+        #msbuildArgs: # Optional
+        #platform: # Optional
+        configuration: 'release'
+        #clean: false # Optional
+        #maximumCpuCount: false # Optional
+        #restoreNugetPackages: true # Optional
+        #msbuildArchitecture: 'x86' # Optional. Options: x86, x64
+        #logProjectEvents: true # Optional
+        #createLogFile: false # Optional
+        #logFileVerbosity: 'normal' # Optional. Options: quiet, minimal, normal, detailed, diagnostic
+
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin
+        contents: '**' 
+        targetFolder: $(Build.ArtifactStagingDirectory)/usb64
+        flattenFolders: true
+      displayName: 'Copy Application'
+      continueOnError: false
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: 'binaries' 
+        publishLocation: 'Container'
+      displayName: Publish Build Artifacts
+      continueOnError: false
