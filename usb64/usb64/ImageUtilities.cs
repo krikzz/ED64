@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace usb64
+namespace ed64usb
 {
     public class ImageUtilities
     {

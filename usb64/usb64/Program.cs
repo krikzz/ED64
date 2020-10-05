@@ -4,7 +4,7 @@ using System.IO.Ports;
 using System.Text;
 using System.Reflection;
 
-namespace usb64
+namespace ed64usb
 {
     internal class Program
     {
@@ -16,8 +16,9 @@ namespace usb64
         {
 
             Console.OutputEncoding = Encoding.UTF8;
-
-            Console.WriteLine($"usb64 version:{ Assembly.GetEntryAssembly().GetName().Version }");
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine($"Everdrive64 X-series USB utility, version:{ Assembly.GetEntryAssembly().GetName().Version }");
+            Console.ResetColor();
 
             try
             {
@@ -106,12 +107,12 @@ namespace usb64
             string arg = ExtractArg(cmd);
 
             data = UsbCmdRamRead((uint)(0x80000000 | addr), len);
-            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320,240, data));
+            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320, 240, data));
         }
 
         private static void CmdDumpRom(string cmd)
         {
-            byte [] data = UsbCmdRomRead(0x10000000, 0x101000);
+            byte[] data = UsbCmdRomRead(0x10000000, 0x101000);
             string arg = ExtractArg(cmd);
             File.WriteAllBytes(arg, data);
 
@@ -122,9 +123,9 @@ namespace usb64
             byte[] writeBuffer = new byte[0x100000];
             byte[] readBuffer;
 
-            
 
-            Console.WriteLine("USB diagnostics...");
+
+            Console.WriteLine("Performing USB diagnostics...");
             for (int i = 0; i < 0x800000; i += writeBuffer.Length)
             {
                 new Random().NextBytes(writeBuffer);
@@ -160,7 +161,7 @@ namespace usb64
                     UsbCmdTest();
                     port.ReadTimeout = 2000;
                     port.WriteTimeout = 2000;
-                    Console.WriteLine($"ED64 found on commport {ports_list[i]}");
+                    Console.WriteLine($"Everdrive64 X-series found on commport {ports_list[i]}");
                     return;
                 }
                 catch (Exception) { }
@@ -174,7 +175,7 @@ namespace usb64
 
             }
 
-            throw new Exception("ED64 not found");
+            throw new Exception("Everdrive64 X-series device not found! \nCheck that the USB cable is connected and the console is powered on.");
         }
 
         private static void CmdFpga(string cmd)
@@ -228,10 +229,6 @@ namespace usb64
 
         // *************************** ED64 USB commands ***************************
 
-        private static void UsbCmdTx(char usb_cmd)
-        {
-            UsbCmdTx(usb_cmd, 0, 0, 0);
-        }
 
         private static void UsbCmdCmemFill(int rom_len, uint val) //I am guessing this stands for cartridge memory?
         {
@@ -239,37 +236,44 @@ namespace usb64
             if (rom_len >= crc_area) return;
 
             Console.Write("Filling memory...");
-            UsbCmdTx('c', 0x10000000, crc_area, val);
+            UsbCmdTransmit('c', 0x10000000, crc_area, val);
             UsbCmdTest();
             Console.WriteLine("ok");
 
         }
 
-        private static void UsbCmdTx(char usb_cmd, uint addr, int len, uint arg)
+        /// <summary>
+        /// Transmits a command to the USB port
+        /// </summary>
+        /// <param name="commandType">the command to send</param>
+        /// <param name="address">Optional</param>
+        /// <param name="length">Optional </param>
+        /// <param name="argument">Optional</param>
+        private static void UsbCmdTransmit(char commandType, uint address = 0, int length = 0, uint argument = 0)
         {
-            
+
             byte[] cmd = new byte[16];
-            len /= 512;
+            length /= 512;
 
             cmd[0] = (byte)'c';
             cmd[1] = (byte)'m';
             cmd[2] = (byte)'d';
-            cmd[3] = (byte)usb_cmd;
+            cmd[3] = (byte)commandType;
 
-            cmd[4] = (byte)(addr >> 24);
-            cmd[5] = (byte)(addr >> 16);
-            cmd[6] = (byte)(addr >> 8);
-            cmd[7] = (byte)(addr >> 0);
+            cmd[4] = (byte)(address >> 24);
+            cmd[5] = (byte)(address >> 16);
+            cmd[6] = (byte)(address >> 8);
+            cmd[7] = (byte)(address >> 0);
 
-            cmd[8] = (byte)(len >> 24);
-            cmd[9] = (byte)(len >> 16);
-            cmd[10] = (byte)(len >> 8);
-            cmd[11] = (byte)(len >> 0);
+            cmd[8] = (byte)(length >> 24);
+            cmd[9] = (byte)(length >> 16);
+            cmd[10] = (byte)(length >> 8);
+            cmd[11] = (byte)(length >> 0);
 
-            cmd[12] = (byte)(arg >> 24);
-            cmd[13] = (byte)(arg >> 16);
-            cmd[14] = (byte)(arg >> 8);
-            cmd[15] = (byte)(arg >> 0);
+            cmd[12] = (byte)(argument >> 24);
+            cmd[13] = (byte)(argument >> 16);
+            cmd[14] = (byte)(argument >> 8);
+            cmd[15] = (byte)(argument >> 0);
 
             port.Write(cmd, 0, cmd.Length);
         }
@@ -285,7 +289,7 @@ namespace usb64
             byte[] buff = new byte[256];
             Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
 
-            UsbCmdTx('s', 0, 0, 1);
+            UsbCmdTransmit('s', 0, 0, 1);
 
             UsbWrite(buff);
         }
@@ -293,32 +297,40 @@ namespace usb64
         private static void UsbCmdFpga(byte[] data)
         {
             data = FixDataSize(data);
-            UsbCmdTx('f', 0, data.Length, 0);
+            UsbCmdTransmit('f', 0, data.Length, 0);
 
             Console.Write("FPGA config.");
             UsbWrite(data);
-            byte []resp = UsbCmdRx('r');
+            byte[] resp = UsbCmdReceive('r');
             if (resp[4] != 0) throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { resp[4] })}");
             Console.WriteLine("ok");
         }
 
-        private static byte[] UsbCmdRx(char usb_cmd)
+        /// <summary>
+        /// Receives a command response from the USB port
+        /// </summary>
+        /// <param name="responseType">the response type to validate</param>
+        /// <returns>the full response in bytes</returns>
+        private static byte[] UsbCmdReceive(char responseType)
         {
 
             byte[] cmd = UsbRead(16);
-            if (cmd[0] != 'c') throw new Exception("Corrupted response");
-            if (cmd[1] != 'm') throw new Exception("Corrupted response");
-            if (cmd[2] != 'd') throw new Exception("Corrupted response");
-            if (cmd[3] != usb_cmd) throw new Exception("Unexpected response");
+            if (cmd[0] != 'c') throw new Exception("Corrupted response.");
+            if (cmd[1] != 'm') throw new Exception("Corrupted response.");
+            if (cmd[2] != 'd') throw new Exception("Corrupted response.");
+            if (cmd[3] != responseType) throw new Exception("Unexpected response.");
 
             return cmd;
 
         }
 
+        /// <summary>
+        /// Test that USB port is able to transmit and receive
+        /// </summary>
         private static void UsbCmdTest()
         {
-            UsbCmdTx('t');
-            UsbCmdRx('r');
+            UsbCmdTransmit('t');
+            UsbCmdReceive('r');
         }
 
         /// <summary>
@@ -330,7 +342,7 @@ namespace usb64
         private static byte[] UsbCmdRomRead(uint startAddress, int length)
         {
 
-            UsbCmdTx('R', startAddress, length, 0);
+            UsbCmdTransmit('R', startAddress, length, 0);
 
             Console.Write("ROM READ.");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
@@ -350,7 +362,7 @@ namespace usb64
         private static byte[] UsbCmdRamRead(uint startAddress, int length)
         {
 
-            UsbCmdTx('r', startAddress, length, 0);
+            UsbCmdTransmit('r', startAddress, length, 0);
 
             Console.Write("RAM READ.");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
@@ -372,7 +384,7 @@ namespace usb64
 
             int len = data.Length;
 
-            UsbCmdTx('W', startAddress, len, 0);
+            UsbCmdTransmit('W', startAddress, len, 0);
 
             Console.Write("ROM WR.");
             pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
