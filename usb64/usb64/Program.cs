@@ -4,33 +4,32 @@ using System.IO.Ports;
 using System.Text;
 using System.Reflection;
 
-namespace usb64
+namespace ed64usb
 {
-    class Program
+    internal class Program
     {
+        private static SerialPort port;
+        private static int pbar_interval = 0;
+        private static int pbar_ctr = 0;
 
-        static SerialPort port;
-        static int pbar_interval = 0;
-        static int pbar_ctr = 0;
-
-
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
 
             Console.OutputEncoding = Encoding.UTF8;
-
-            Console.WriteLine($"usb64 v { Assembly.GetEntryAssembly().GetName().Version}");
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine($"Everdrive64 X-series USB utility, version:{ Assembly.GetEntryAssembly().GetName().Version }");
+            Console.ResetColor();
 
             try
             {
-                usb64(args);
+                Usb64(args);
 
             }
-            catch (Exception x)
+            catch (Exception exception)
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("");
-                Console.WriteLine($"ERROR: {x.Message}");
+                Console.WriteLine($"ERROR: {exception.Message}");
                 Console.ResetColor();
             }
 
@@ -44,13 +43,13 @@ namespace usb64
             catch (Exception) { };
         }
 
-        static void usb64(string[] args)
+        private static void Usb64(string[] args)
         {
 
             string rom_name = "default-usb-rom.v64";
 
 
-            connect();
+            Connect();
 
 
             long time = DateTime.Now.Ticks;
@@ -60,33 +59,33 @@ namespace usb64
 
                 if (args[i].StartsWith("-fpga"))
                 {
-                    cmdFpga(args[i]);
+                    CmdFpga(args[i]);
                 }
 
                 if (args[i].StartsWith("-rom"))
                 {
-                    rom_name = extractArg(args[i]);
-                    cmdLoadRom(args[i]);
+                    rom_name = ExtractArg(args[i]);
+                    CmdLoadRom(args[i]);
                 }
 
                 if (args[i].StartsWith("-start"))
                 {
-                    usbCmdStartApp(rom_name);
+                    UsbCmdStartRom(rom_name);
                 }
 
                 if (args[i].StartsWith("-diag"))
                 {
-                    cmdDiag();
+                    CmdDiagnostics();
                 }
 
                 if (args[i].StartsWith("-drom"))
                 {
-                    cmdDumpRom(args[i]);
+                    CmdDumpRom(args[i]);
                 }
 
                 if (args[i].StartsWith("-screen"))
                 {
-                    cmdDumpScreenBuffer(args[i]);
+                    CmdDumpScreenBuffer(args[i]);
                 }
 
 
@@ -98,45 +97,44 @@ namespace usb64
 
         }
 
-        static void cmdDumpScreenBuffer(string cmd)
+        private static void CmdDumpScreenBuffer(string cmd)
         {
 
-            byte[] data = usbCmdRamRD(0xA4400004, 512);// Get the scrreen buffer fom cartridge RAM
+            byte[] data = UsbCmdRamRead(0xA4400004, 512);// Get the scrreen buffer fom cartridge RAM
 
             int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
             int len = 320 * 240 * 2; //the Menu only supports 320x240 resolution
-            string arg = extractArg(cmd);
+            string arg = ExtractArg(cmd);
 
-            data = usbCmdRamRD((uint)(0x80000000 | addr), len);
-            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320,240, data));
+            data = UsbCmdRamRead((uint)(0x80000000 | addr), len);
+            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320, 240, data));
         }
 
-
-        static void cmdDumpRom(string cmd)
+        private static void CmdDumpRom(string cmd)
         {
-            byte [] data = usbCmdRomRD(0x10000000, 0x101000);
-            string arg = extractArg(cmd);
+            byte[] data = UsbCmdRomRead(0x10000000, 0x101000);
+            string arg = ExtractArg(cmd);
             File.WriteAllBytes(arg, data);
 
         }
 
-        static void cmdDiag()
+        private static void CmdDiagnostics()
         {
-            byte[] buff1 = new byte[0x100000];
-            byte[] buff2;
+            byte[] writeBuffer = new byte[0x100000];
+            byte[] readBuffer;
 
-            
 
-            Console.WriteLine("USB diagnostics...");
-            for (int i = 0; i < 0x800000; i += buff1.Length)
+
+            Console.WriteLine("Performing USB diagnostics...");
+            for (int i = 0; i < 0x800000; i += writeBuffer.Length)
             {
-                new Random().NextBytes(buff1);
-                usbCmdRomWR(buff1, 0x10000000);
-                buff2 = usbCmdRomRD(0x10000000, buff1.Length);
+                new Random().NextBytes(writeBuffer);
+                UsbCmdRomWrite(writeBuffer, 0x10000000);
+                readBuffer = UsbCmdRomRead(0x10000000, writeBuffer.Length);
 
-                for (int u = 0; u < buff1.Length; u++)
+                for (int u = 0; u < writeBuffer.Length; u++)
                 {
-                    if (buff1[u] != buff2[u]) throw new Exception("USB diagnostics error: " + (i + u));
+                    if (writeBuffer[u] != readBuffer[u]) throw new Exception("USB diagnostics error: " + (i + u));
                 }
 
             }
@@ -147,11 +145,11 @@ namespace usb64
 
         }
 
-        static void connect()
+        private static void Connect()
         {
             string[] ports_list = SerialPort.GetPortNames();
 
-            for(int i = 0;i < ports_list.Length; i++)
+            for (int i = 0; i < ports_list.Length; i++)
             {
 
                 try
@@ -160,10 +158,10 @@ namespace usb64
                     port.Open();
                     port.ReadTimeout = 200;
                     port.WriteTimeout = 200;
-                    usbCmdTest();
+                    UsbCmdTest();
                     port.ReadTimeout = 2000;
                     port.WriteTimeout = 2000;
-                    Console.WriteLine($"ED64 found at commport {ports_list[i]}");
+                    Console.WriteLine($"Everdrive64 X-series found on commport {ports_list[i]}");
                     return;
                 }
                 catch (Exception) { }
@@ -177,202 +175,229 @@ namespace usb64
 
             }
 
-            throw new Exception("ED64 not found");
+            throw new Exception("Everdrive64 X-series device not found! \nCheck that the USB cable is connected and the console is powered on.");
         }
 
-        static bool isBootLoader(byte[] data)
+        private static void CmdFpga(string cmd)
+        {
+            string arg = ExtractArg(cmd);
+            byte[] data = File.ReadAllBytes(arg);
+            UsbCmdFpga(data);
+        }
+
+        private static void CmdLoadRom(string cmd)
+        {
+
+            string fileName = ExtractArg(cmd);
+            byte[] data = File.ReadAllBytes(fileName);
+            bool is_emulator_rom;
+
+
+            if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37))
+            {
+                is_emulator_rom = false;
+            }
+            else
+            {
+                is_emulator_rom = true;
+            }
+
+            uint fill_val = IsBootLoader(data) ? 0xffffffff : 0;
+            uint base_addr = 0x10000000;
+            if (is_emulator_rom) base_addr += 0x200000;
+
+            UsbCmdCmemFill(data.Length, fill_val);
+            UsbCmdRomWrite(data, base_addr);
+        }
+
+        private static bool IsBootLoader(byte[] data)
         {
             bool bootloader = true;
-            string boot_str = "EverDrive bootloader";
-            for (int i = 0; i < boot_str.ToCharArray().Length; i++)
+            const string BOOT_MESSAGE = "EverDrive bootloader";
+            for (int i = 0; i < BOOT_MESSAGE.ToCharArray().Length; i++)
             {
-                if (boot_str.ToCharArray()[i] != data[0x20 + i]) bootloader = false;
+                if (BOOT_MESSAGE.ToCharArray()[i] != data[0x20 + i]) bootloader = false;
             }
 
             return bootloader;
         }
 
-
-        static void cmdFpga(string cmd)
-        {
-            string arg = extractArg(cmd);
-            byte[] data = File.ReadAllBytes(arg);
-            usbCmdFpga(data);
-        }
-
-        static void cmdLoadRom(string cmd)
-        {
-
-            string fname = extractArg(cmd);
-            byte[] data = File.ReadAllBytes(fname);
-            bool is_emu_rom;
-
-
-            if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37))
-            {
-                is_emu_rom = false;
-            }
-            else
-            {
-                is_emu_rom = true;
-            }
-
-            UInt32 fill_val = isBootLoader(data) ? 0xffffffff : 0;
-            UInt32 base_addr = 0x10000000;
-            if (is_emu_rom) base_addr += 0x200000;
-
-            usbCmdCmemFill(data.Length, fill_val);
-            usbCmdRomWR(data, base_addr);
-        }
-
-        static string extractArg(string cmd)
+        private static string ExtractArg(string cmd)
         {
             return cmd.Substring(cmd.IndexOf("=") + 1);
         }
 
-        //********************************************************************************* ED64 USB commands
-        //*********************************************************************************
+        // *************************** ED64 USB commands ***************************
 
-        static void usbCmdTx(char usb_cmd)
-        {
-            usbCmdTx(usb_cmd, 0, 0, 0);
-        }
 
-       
-
-        static void usbCmdCmemFill(int rom_len, UInt32 val)
+        private static void UsbCmdCmemFill(int rom_len, uint val) //I am guessing this stands for cartridge memory?
         {
             int crc_area = 0x100000 + 4096;
             if (rom_len >= crc_area) return;
 
             Console.Write("Filling memory...");
-            usbCmdTx('c', 0x10000000, crc_area, val);
-            usbCmdTest();
+            UsbCmdTransmit('c', 0x10000000, crc_area, val);
+            UsbCmdTest();
             Console.WriteLine("ok");
 
         }
 
-        static void usbCmdTx(char usb_cmd, UInt32 addr, int len, UInt32 arg)
+        /// <summary>
+        /// Transmits a command to the USB port
+        /// </summary>
+        /// <param name="commandType">the command to send</param>
+        /// <param name="address">Optional</param>
+        /// <param name="length">Optional </param>
+        /// <param name="argument">Optional</param>
+        private static void UsbCmdTransmit(char commandType, uint address = 0, int length = 0, uint argument = 0)
         {
-            
+
             byte[] cmd = new byte[16];
-            len /= 512;
+            length /= 512;
 
             cmd[0] = (byte)'c';
             cmd[1] = (byte)'m';
             cmd[2] = (byte)'d';
-            cmd[3] = (byte)usb_cmd;
+            cmd[3] = (byte)commandType;
 
-            cmd[4] = (byte)(addr >> 24);
-            cmd[5] = (byte)(addr >> 16);
-            cmd[6] = (byte)(addr >> 8);
-            cmd[7] = (byte)(addr >> 0);
+            cmd[4] = (byte)(address >> 24);
+            cmd[5] = (byte)(address >> 16);
+            cmd[6] = (byte)(address >> 8);
+            cmd[7] = (byte)(address >> 0);
 
-            cmd[8] = (byte)(len >> 24);
-            cmd[9] = (byte)(len >> 16);
-            cmd[10] = (byte)(len >> 8);
-            cmd[11] = (byte)(len >> 0);
+            cmd[8] = (byte)(length >> 24);
+            cmd[9] = (byte)(length >> 16);
+            cmd[10] = (byte)(length >> 8);
+            cmd[11] = (byte)(length >> 0);
 
-            cmd[12] = (byte)(arg >> 24);
-            cmd[13] = (byte)(arg >> 16);
-            cmd[14] = (byte)(arg >> 8);
-            cmd[15] = (byte)(arg >> 0);
+            cmd[12] = (byte)(argument >> 24);
+            cmd[13] = (byte)(argument >> 16);
+            cmd[14] = (byte)(argument >> 8);
+            cmd[15] = (byte)(argument >> 0);
 
             port.Write(cmd, 0, cmd.Length);
         }
 
-        static void usbCmdStartApp(string fname)
+        /// <summary>
+        /// Starts a ROM on the cartridge
+        /// </summary>
+        /// <param name="fileName">The filename</param>
+        private static void UsbCmdStartRom(string fileName)
         {
-            byte[] fname_bytes = Encoding.ASCII.GetBytes(fname);
-            if (fname.Length >= 256) throw new Exception("file name is too long");
+            byte[] fname_bytes = Encoding.ASCII.GetBytes(fileName);
+            if (fileName.Length >= 256) throw new Exception("file name is too long");
             byte[] buff = new byte[256];
             Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
 
-            //usbCmdTx('s');
-            usbCmdTx('s', 0, 0, 1);
+            UsbCmdTransmit('s', 0, 0, 1);
 
-            usbWrite(buff);
+            UsbWrite(buff);
         }
 
-        static void usbCmdFpga(byte[] data)
+        private static void UsbCmdFpga(byte[] data)
         {
-            data = fixDataSize(data);
-            usbCmdTx('f', 0, data.Length, 0);
+            data = FixDataSize(data);
+            UsbCmdTransmit('f', 0, data.Length, 0);
 
             Console.Write("FPGA config.");
-            usbWrite(data);
-            byte []resp = usbCmdRx('r');
+            UsbWrite(data);
+            byte[] resp = UsbCmdReceive('r');
             if (resp[4] != 0) throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { resp[4] })}");
             Console.WriteLine("ok");
         }
 
-        static byte[] usbCmdRx(char usb_cmd)
+        /// <summary>
+        /// Receives a command response from the USB port
+        /// </summary>
+        /// <param name="responseType">the response type to validate</param>
+        /// <returns>the full response in bytes</returns>
+        private static byte[] UsbCmdReceive(char responseType)
         {
 
-            byte[] cmd = usbRead(16);
-            if (cmd[0] != 'c') throw new Exception("Corrupted response");
-            if (cmd[1] != 'm') throw new Exception("Corrupted response");
-            if (cmd[2] != 'd') throw new Exception("Corrupted response");
-            if (cmd[3] != usb_cmd) throw new Exception("Unexpected response");
+            byte[] cmd = UsbRead(16);
+            if (cmd[0] != 'c') throw new Exception("Corrupted response.");
+            if (cmd[1] != 'm') throw new Exception("Corrupted response.");
+            if (cmd[2] != 'd') throw new Exception("Corrupted response.");
+            if (cmd[3] != responseType) throw new Exception("Unexpected response.");
 
             return cmd;
 
         }
 
-        static void usbCmdTest()
+        /// <summary>
+        /// Test that USB port is able to transmit and receive
+        /// </summary>
+        private static void UsbCmdTest()
         {
-            usbCmdTx('t');
-            usbCmdRx('r');
+            UsbCmdTransmit('t');
+            UsbCmdReceive('r');
         }
 
-        static byte[] usbCmdRomRD(UInt32 addr, int len)
+        /// <summary>
+        /// Reads the Cartridge ROM
+        /// </summary>
+        /// <param name="startAddress">The start address</param>
+        /// <param name="length">The length to read</param>
+        /// <returns></returns>
+        private static byte[] UsbCmdRomRead(uint startAddress, int length)
         {
 
-            usbCmdTx('R', addr, len, 0);
+            UsbCmdTransmit('R', startAddress, length, 0);
 
-            Console.Write("ROM RD.");
-            pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
+            Console.Write("ROM READ.");
+            pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            byte[] data = usbRead(len);
+            byte[] data = UsbRead(length);
             time = DateTime.Now.Ticks - time;
-            Console.WriteLine($"OK. speed: {getSpeedStr(data.Length, time)}");
+            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
             return data;
         }
 
-        static byte[] usbCmdRamRD(UInt32 addr, int len)
+        /// <summary>
+        /// Reads the Cartridge RAM
+        /// </summary>
+        /// <param name="startAddress">The start address</param>
+        /// <param name="length">The length to read</param>
+        /// <returns></returns>
+        private static byte[] UsbCmdRamRead(uint startAddress, int length)
         {
 
-            usbCmdTx('r', addr, len, 0);
+            UsbCmdTransmit('r', startAddress, length, 0);
 
-            Console.Write("RAM RD.");
-            pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
+            Console.Write("RAM READ.");
+            pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            byte[] data = usbRead(len);
+            byte[] data = UsbRead(length);
             time = DateTime.Now.Ticks - time;
-            Console.WriteLine($"OK. speed: {getSpeedStr(data.Length, time)}");
+            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
             return data;
         }
 
-
-        static byte[] usbCmdRomWR(byte[] data, UInt32 addr)
+        /// <summary>
+        /// Writes to the cartridge ROM
+        /// </summary>
+        /// <param name="data">The data to write</param>
+        /// <param name="startAddress">The start address</param>
+        /// <returns></returns>
+        private static byte[] UsbCmdRomWrite(byte[] data, uint startAddress)
         {
 
             int len = data.Length;
 
-            usbCmdTx('W', addr, len, 0);
+            UsbCmdTransmit('W', startAddress, len, 0);
 
             Console.Write("ROM WR.");
             pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            usbWrite(data, 0, len);
+            UsbWrite(data, 0, len);
             time = DateTime.Now.Ticks - time;
 
-            Console.WriteLine($"OK. speed: {getSpeedStr(data.Length, time)}");
+            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
 
             return data;
         }
 
-        static string getSpeedStr(long len, long time)
+        private static string GetSpeedString(long len, long time)
         {
             time /= 10000;
             if (time == 0) time = 1;
@@ -382,8 +407,7 @@ namespace usb64
 
         }
 
-
-        static byte[] fixDataSize(byte []data)
+        private static byte[] FixDataSize(byte[] data)
         {
             if (data.Length % 512 == 0) return data;
             byte[] buff = new byte[data.Length / 512 * 512 + 512];
@@ -393,58 +417,55 @@ namespace usb64
             return buff;
         }
 
-        //********************************************************************************* USB communication
-        //*********************************************************************************
+        // *************************** USB communication ***************************
 
-        static void usbRead(byte[] data, int offset, int len)
+        private static void UsbRead(byte[] data, int offset, int len)
         {
 
             while (len > 0)
             {
                 int block_size = 32768;
                 if (block_size > len) block_size = len;
-                int readed = port.Read(data, offset, block_size);
-                len -= readed;
-                offset += readed;
-                pbarUpdate(readed);
+                int bytesread = port.Read(data, offset, block_size);
+                len -= bytesread;
+                offset += bytesread;
+                PbarUpdate(bytesread);
             }
 
-            pbarReset();
+            PbarReset();
         }
 
-
-        static byte[] usbRead(int len)
+        private static byte[] UsbRead(int len)
         {
             byte[] data = new byte[len];
-            usbRead(data, 0, data.Length);
+            UsbRead(data, 0, data.Length);
             return data;
 
         }
 
-
-        static void usbWrite(byte[] data, int offset, int len)
+        private static void UsbWrite(byte[] data, int offset, int len)
         {
 
             while (len > 0)
             {
                 int block_size = 32768;
                 if (block_size > len) block_size = len;
-                port.Write(data, (int)offset, (int)block_size);
+                port.Write(data, offset, block_size);
                 len -= block_size;
                 offset += block_size;
-                pbarUpdate(block_size);
+                PbarUpdate(block_size);
             }
 
-            pbarReset();
+            PbarReset();
 
         }
 
-        static void usbWrite(byte[] data)
+        private static void UsbWrite(byte[] data)
         {
-            usbWrite(data, 0, data.Length);
+            UsbWrite(data, 0, data.Length);
         }
 
-        static void pbarUpdate(int val)
+        private static void PbarUpdate(int val)
         {
             if (pbar_interval == 0) return;
             pbar_ctr += val;
@@ -454,7 +475,7 @@ namespace usb64
             Console.Write(".");
         }
 
-        static void pbarReset()
+        private static void PbarReset()
         {
             pbar_interval = 0;
             pbar_ctr = 0;
