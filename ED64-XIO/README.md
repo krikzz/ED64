@@ -16,5 +16,13 @@ The sample currently relies on LibDragon, however its dependency is minimal and 
 ### With CMake
 An example of how to build the sample using CMake (on Windows) can be found in the root directories azure-pipelines.yml file.
 
+#### With VSCode
+If building locally using VSCode, the `UpdateToolchain.ps1` should be ran to download the necessary toolchain files, and the `cmake-variants.json` file should be updated to use the correct file paths.
+
+The following extensions are also required:
+* C/C++
+* CMake
+* CMake Tools 
+
 ### With Makefile
 A Makefile is included, but might need to be modified for your environment.
