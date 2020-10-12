@@ -1,0 +1,40 @@
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "LibDragon",
+//             "type": "cppdbg",
+//             "request": "launch",
+//             "miDebuggerPath": "F:/Source/Repos/N64/cmake-demo-rom/toolchain/gcc-toolchain-mips64/bin/mips64-elf-gdb.exe",
+//             "targetArchitecture": "vr4300",
+//             "program": "${workspaceFolder}/build/BUILD-DEMO.elf",
+
+//             "setupCommands": [
+//                 {"text": "target extended-remote localhost:3333"},
+//                 {"text": "monitor reset_config none separate"},
+//                 {"text": "monitor reset halt"},
+//                 {"text": "monitor flash write_image erase \"F:/Source/Repos/N64/cmake-demo-rom/build/BUILD-DEMO.hex\" "}, //this one definitely needs changing!
+//                 {"text": "file F:/Source/Repos/N64/cmake-demo-rom/build/BUILD-DEMO.elf"},
+//                 {"text": "monitor reset halt"}
+//             ],
+
+//             "customLaunchSetupCommands": [
+//                 {"text": "monitor reset_config none separate"},
+//                 {"text": "monitor reset halt"}
+//             ],
+
+//             "launchCompleteCommand": "exec-continue",
+//             "debugServerPath": "C:/Program Files/GNU ARM Eclipse/OpenOCD/0.10.0-201704182147-dev/bin/openocd.exe",
+//             "debugServerArgs": "-s \"C:/Program Files/GNU ARM Eclipse/OpenOCD/0.10.0-201704182147-dev/scripts/\" -f interface/stlink-v2.cfg -f board/stm32f7discovery.cfg", //this also needs changing!
+//             "serverStarted": "Info\\ :\\ [\\w\\d\\.]*:\\ hardware",
+//             "filterStderr": true,
+//             "externalConsole": true,
+//             "cwd": "${workspaceFolder}"
+//             // Enable the following to debug GDB
+//             //"logging": {
+//             //    "engineLogging": true,
+//             //    "traceResponse": true
+//             //},
+//         }
+//     ]
+// }

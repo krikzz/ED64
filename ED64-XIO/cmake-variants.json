@@ -1,0 +1,51 @@
+{
+  "buildType": {
+    "default": "Debug",
+      "choices": { 
+        "debug": {
+          "short": "Debug",
+          "long": "Emit debug information without performing optimizations",
+          "buildType": "Debug"
+        },
+        "release": {
+          "short": "release",
+          "long": "Optimize for smallest binary size",
+          "buildType": "Release"
+        }   
+      }
+  },
+  "TARGET": {
+    "default": "ALL",
+    "choices": {
+      "ALL": {
+        "short": "All",
+        "settings": {
+          "ROM_NAME" : "ED64-XIO-SAMPLE",
+          "HARDWARE_TYPE" : "ALL",
+          "BUILD_VERSION" : "0.0.1",
+          "CMAKE_TOOLCHAIN_FILE" : "CMake/toolchain-libdragon.cmake",
+          "TOOLCHAIN_PREFIX" : "F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/toolchain/gcc-toolchain-mips64",
+          "LIBDRAGON_PREFIX": "F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/toolchain/libdragon"
+        }
+      }
+    }
+  },
+  "DEPLOY": {
+    "default": "NONE",
+    "choices": {
+      "NONE": {
+        "short": "None",
+        "settings": {
+          "DEPLOY": ""
+        }
+      },
+      "ED64": {
+        "short": "ED64",
+        "settings": {
+          "DEPLOY": "F:/Source/Repos/N64/krikzz/ED64/usb64/usb64/bin/Debug/net45/usb64",
+          "DEPLOY_PARAMETERS" : "-rom=F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/build/ED64-XIO-SAMPLE.v64 -start"
+        }
+      }
+    }
+  }
+}

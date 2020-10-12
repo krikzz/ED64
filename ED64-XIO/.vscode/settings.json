@@ -1,0 +1,13 @@
+{
+    "cmake.preferredGenerators": [
+        "Ninja"
+    ],
+    "cmake.generator": "Ninja",
+    "cmake.autoRestartBuild" : true,
+    "cmake.configureSettings": {
+        "CMAKE_MAKE_PROGRAM": "F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/tools/ninja.exe"
+    },
+    "cmake.cmakePath": "C:/Program Files/CMake/bin/cmake.exe",
+    "cmake.configureOnOpen": false,
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+}

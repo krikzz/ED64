@@ -8,7 +8,7 @@ Arg: `-fpga <filename>`
 
 ### Transfer ROM
 Writes a (ROM) file to ED64's volatile memory
-Arg: `-rom <filename>`
+Arg: `-rom=<filename>`
 
 
 ### Start ROM
@@ -23,9 +23,9 @@ Arg: `-diag`
 
 ### Dump ROM
 Dumps the loaded ROM from the ED64's volatile memory
-Arg: `-drom <filename>`
+Arg: `-drom=<filename>`
 
 
 ### Take screenshot
 Generates an image from the frame buffer (in bitmap format)
-Arg `-screen <filename>`
+Arg `-screen=<filename>`
