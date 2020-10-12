@@ -130,7 +130,6 @@ typedef DWORD LBA_t;
 /* Filesystem object structure (FATFS) */
 
 typedef struct {
-        BYTE	win[FF_MAX_SS];	/* Disk access window for Directory, FAT (and file data at tiny cfg) */
 	BYTE	fs_type;		/* Filesystem type (0:not mounted) */
 	BYTE	pdrv;			/* Associated physical drive */
 	BYTE	n_fats;			/* Number of FATs (1 or 2) */
@@ -173,6 +172,7 @@ typedef struct {
 	LBA_t	bitbase;		/* Allocation bitmap base sector */
 #endif
 	LBA_t	winsect;		/* Current sector appearing in the win[] */
+	BYTE	win[FF_MAX_SS];	/* Disk access window for Directory, FAT (and file data at tiny cfg) */
 } FATFS;
 
 
