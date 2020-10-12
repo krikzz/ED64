@@ -5,7 +5,7 @@
 //             "name": "LibDragon",
 //             "type": "cppdbg",
 //             "request": "launch",
-//             "miDebuggerPath": "F:/Source/Repos/N64/cmake-demo-rom/toolchain/gcc-toolchain-mips64/bin/mips64-elf-gdb.exe",
+//             "miDebuggerPath": "${workspaceFolder}/toolchain/gcc-toolchain-mips64/bin/mips64-elf-gdb.exe",
 //             "targetArchitecture": "vr4300",
 //             "program": "${workspaceFolder}/build/BUILD-DEMO.elf",
 
@@ -13,8 +13,8 @@
 //                 {"text": "target extended-remote localhost:3333"},
 //                 {"text": "monitor reset_config none separate"},
 //                 {"text": "monitor reset halt"},
-//                 {"text": "monitor flash write_image erase \"F:/Source/Repos/N64/cmake-demo-rom/build/BUILD-DEMO.hex\" "}, //this one definitely needs changing!
-//                 {"text": "file F:/Source/Repos/N64/cmake-demo-rom/build/BUILD-DEMO.elf"},
+//                 {"text": "monitor flash write_image erase \"${workspaceFolder}/build/BUILD-DEMO.hex\" "}, //this one definitely needs changing!
+//                 {"text": "file ${workspaceFolder}/build/BUILD-DEMO.elf"},
 //                 {"text": "monitor reset halt"}
 //             ],
 

@@ -37,8 +37,8 @@
           "FEATURE_SD" : "OFF",
           "BUILD_VERSION" : "0.0.1",
           "CMAKE_TOOLCHAIN_FILE" : "CMake/toolchain-libdragon.cmake",
-          "TOOLCHAIN_PREFIX" : "F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/toolchain/gcc-toolchain-mips64",
-          "LIBDRAGON_PREFIX": "F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/toolchain/libdragon"
+          "TOOLCHAIN_PREFIX" : "${workspaceFolder}/toolchain/gcc-toolchain-mips64",
+          "LIBDRAGON_PREFIX": "${workspaceFolder}/toolchain/libdragon"
         }
       }
     }
@@ -55,8 +55,8 @@
       "USB64": {
         "short": "usb64",
         "settings": {
-          "DEPLOY": "F:/Source/Repos/N64/krikzz/ED64/usb64/usb64/bin/Debug/net45/usb64",
-          "DEPLOY_PARAMETERS" : "-rom=F:/Source/Repos/N64/krikzz/ED64/ED64-XIO/build/ED64-XIO-SAMPLE.v64 -start"
+          "DEPLOY": "${workspaceFolder}/../usb64/usb64/bin/Debug/net45/usb64",
+          "DEPLOY_PARAMETERS" : "-rom=${workspaceFolder}/build/ED64-XIO-SAMPLE.v64 -start"
         }
       }
     }
