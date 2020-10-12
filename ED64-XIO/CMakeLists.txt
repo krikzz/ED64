@@ -5,13 +5,15 @@ include(ExternalProject)
 
 set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "ON" FORCE) # debug helper
 
+set(ROMFIX64_TOOL       ${CMAKE_CURRENT_LIST_DIR}/tools/romfix64) #custom version of checksum?
+
 # the following prevents launching a build in the source tree
 set(CMAKE_DISABLE_SOURCE_CHANGES ON)
 set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 # make sure the version is set
 if(NOT BUILD_VERSION)
-	set(BUILD_VERSION 3.14.0)
+	set(BUILD_VERSION 3.14.1)
 endif()
 
 project(ED64-XIO-SAMPLE #rename for your ROM name
@@ -82,7 +84,7 @@ add_custom_command(TARGET ${ELF_NAME}
 				  
 add_custom_command(TARGET ${ELF_NAME}
                   POST_BUILD
-                  COMMAND ${CHECKSUM_TOOL} ARGS ${ROM_NAME}
+                  COMMAND ${ROMFIX64_TOOL} ARGS ${ROM_NAME}
 				  )
 
 if(DEPLOY)
