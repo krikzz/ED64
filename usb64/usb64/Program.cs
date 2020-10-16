@@ -65,7 +65,7 @@ namespace ed64usb
         private static void Usb64(string[] args)
         {
 
-            var rom_name = string.Empty;
+            var romName = string.Empty;
             var startRom = false;
 
 
@@ -79,12 +79,12 @@ namespace ed64usb
                 switch (arg)
                 {
                     case string x when x.StartsWith("-fpga"):
-                        CmdFpga(arg);
+                        CmdFpga(ExtractArg(arg));
                         break;
 
                     case string x when x.StartsWith("-rom"):
-                        rom_name = ExtractArg(arg);
-                        CmdLoadRom(arg);
+                        romName = ExtractArg(arg);
+                        CmdLoadRom(romName);
                         break;
 
                     case string x when x.StartsWith("-start"):
@@ -96,11 +96,11 @@ namespace ed64usb
                         break;
 
                     case string x when x.StartsWith("-drom"):
-                        CmdDumpRom(arg);
+                        CmdDumpRom(ExtractArg(arg));
                         break;
 
                     case string x when x.StartsWith("-screen"):
-                        CmdDumpScreenBuffer(arg);
+                        CmdDumpScreenBuffer(ExtractArg(arg));
                         break;
 
                     case string x when x.StartsWith("-debug"):
@@ -111,12 +111,12 @@ namespace ed64usb
                     default:
                         if (arg.StartsWith("-"))
                         {
-                            Console.WriteLine("Not implemented yet...");
+                            Console.WriteLine("Not implemented yet... check parameter is valid!");
                         }
                         else if (arg.ToLowerInvariant().EndsWith(".v64")); //try and load it as the ROM TODO: handle other ROM types
                         {
-                            CmdLoadRom(arg);
-                            UsbCmdStartRom(arg);
+                            CmdLoadRom(ExtractArg(arg));
+                            UsbCmdStartRom(ExtractArg(arg));
                         }
                         break;
                 }
@@ -124,9 +124,9 @@ namespace ed64usb
 
             if (startRom)
             {
-                if (rom_name != string.Empty)
+                if (romName != string.Empty)
                 {
-                    UsbCmdStartRom(rom_name);
+                    UsbCmdStartRom(romName);
                 }
             }
 
@@ -136,24 +136,22 @@ namespace ed64usb
 
         }
 
-        private static void CmdDumpScreenBuffer(string cmd)
+        private static void CmdDumpScreenBuffer(string filename)
         {
 
             byte[] data = UsbCmdRamRead(0xA4400004, 512);// Get the scrreen buffer fom cartridge RAM
 
             int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
             int len = 320 * 240 * 2; //the Menu only supports 320x240 resolution
-            string arg = ExtractArg(cmd);
 
             data = UsbCmdRamRead((uint)(0x80000000 | addr), len);
-            File.WriteAllBytes(arg, ImageUtilities.ConvertToBitmap(320, 240, data));
+            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(320, 240, data));
         }
 
-        private static void CmdDumpRom(string cmd)
+        private static void CmdDumpRom(string filename)
         {
             byte[] data = UsbCmdRomRead(0x10000000, 0x101000);
-            string arg = ExtractArg(cmd);
-            File.WriteAllBytes(arg, data);
+            File.WriteAllBytes(filename, data);
 
         }
 
@@ -212,18 +210,15 @@ namespace ed64usb
             throw new Exception("Everdrive64 X-series device not found! \nCheck that the USB cable is connected and the console is powered on.");
         }
 
-        private static void CmdFpga(string cmd)
+        private static void CmdFpga(string filename)
         {
-            string arg = ExtractArg(cmd);
-            byte[] data = File.ReadAllBytes(arg);
+            byte[] data = File.ReadAllBytes(filename);
             UsbCmdFpga(data);
         }
 
-        private static void CmdLoadRom(string cmd)
+        private static void CmdLoadRom(string filename)
         {
-
-            string fileName = ExtractArg(cmd);
-            byte[] data = File.ReadAllBytes(fileName);
+            byte[] data = File.ReadAllBytes(filename);
             bool is_emulator_rom;
 
 
