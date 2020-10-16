@@ -39,10 +39,10 @@ namespace ed64usb
             short height = 240;
 
             byte[] data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM
-            int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]; //convert endian (TODO: is this correct on linux?)
-            int len = width * height * 2;
+            int address = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]; //convert endian (TODO: is this correct on linux?)
+            int length = width * height * 2;
 
-            data = RamRead((uint)(RAM_BASE_ADDRESS | addr), len); // Get the framebuffer data from cartridge RAM
+            data = RamRead((uint)(RAM_BASE_ADDRESS | address), length); // Get the framebuffer data from cartridge RAM
             File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));
         }
 
@@ -91,10 +91,10 @@ namespace ed64usb
             UsbCmdTransmit(CommandProcessor.Command.FpgaWrite, 0, data.Length, 0);
 
             UsbWrite(data);
-            byte[] resp = UsbCmdReceive('r');
-            if (resp[4] != 0)
+            byte[] responseBytes = UsbCmdReceive('r');
+            if (responseBytes[4] != 0)
             {
-                throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { resp[4] })}");
+                throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { responseBytes[4] })}");
             }
             return true;
         }
@@ -109,7 +109,7 @@ namespace ed64usb
             bool isEmulatorROM;
 
 
-            if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37))
+            if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37)) //check the file header matches a valid N64 ROM.
             {
                 isEmulatorROM = false;
             }
@@ -118,12 +118,12 @@ namespace ed64usb
                 isEmulatorROM = true;
             }
 
-            uint fill_val = IsBootLoader(data) ? 0xffffffff : 0;
-            uint base_addr = ROM_BASE_ADDRESS;
-            if (isEmulatorROM) base_addr += 0x200000;
+            uint fillValue = IsBootLoader(data) ? 0xffffffff : 0;
+            uint baseAddress = ROM_BASE_ADDRESS;
+            if (isEmulatorROM) baseAddress += 0x200000;
 
-            FormatRomMemory(data.Length, fill_val);
-            RomWrite(data, base_addr);
+            FormatRomMemory(data.Length, fillValue);
+            RomWrite(data, baseAddress);
         }
 
         /// <summary>
@@ -174,13 +174,13 @@ namespace ed64usb
         public static byte[] RomWrite(byte[] data, uint startAddress)
         {
 
-            int len = data.Length;
+            int length = data.Length;
 
-            UsbCmdTransmit(CommandProcessor.Command.RomWrite, startAddress, len, 0);
+            UsbCmdTransmit(CommandProcessor.Command.RomWrite, startAddress, length, 0);
 
-            pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
+            pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            UsbWrite(data, 0, len);
+            UsbWrite(data, 0, length);
             time = DateTime.Now.Ticks - time;
 
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
@@ -194,14 +194,14 @@ namespace ed64usb
         /// <param name="fileName">The filename</param>
         public static void StartRom(string fileName)
         {
-            byte[] fname_bytes = Encoding.ASCII.GetBytes(fileName);
+            
             if (fileName.Length >= 256)
             {
                 throw new Exception("Filename exceeds the 256 character limit.");
             }
-
+            byte[] fname_bytes = Encoding.ASCII.GetBytes(fileName);
             byte[] buff = new byte[256];
-            Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
+            Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length); //TODO: why do we need to go around the house here? (copying something that is already an array, except perhaps it needs to be fixed to 256?!
 
             UsbCmdTransmit(CommandProcessor.Command.RomStart, 0, 0, 1);
 
@@ -265,7 +265,7 @@ namespace ed64usb
             cmd[1] = (byte)'m';
             cmd[2] = (byte)'d';
             cmd[3] = (byte)commandType;
-
+            //TODO: any implications from linux for below?
             cmd[4] = (byte)(address >> 24);
             cmd[5] = (byte)(address >> 16);
             cmd[6] = (byte)(address >> 8);
@@ -390,24 +390,25 @@ namespace ed64usb
 
 
         // *************************** Serial port connection ***************************
+        //TODO: move this back to the main class and call this class as non static (passing the serialport in)
 
         public static void Connect()
         {
-            string[] ports_list = SerialPort.GetPortNames();
+            string[] ports = SerialPort.GetPortNames();
 
-            for (int i = 0; i < ports_list.Length; i++)
+            foreach (var p in ports)
             {
 
                 try
                 {
-                    port = new SerialPort(ports_list[i]);
+                    port = new SerialPort(p);
                     port.Open();
                     port.ReadTimeout = 200;
                     port.WriteTimeout = 200;
                     TestCommunication();
                     port.ReadTimeout = 2000;
                     port.WriteTimeout = 2000;
-                    Console.WriteLine($"Everdrive64 X-series found on serialport {ports_list[i]}");
+                    Console.WriteLine($"Everdrive64 X-series found on serialport {p}");
                     return;
                 }
                 catch (Exception) { }
@@ -421,14 +422,10 @@ namespace ed64usb
 
         public static void ClosePort()
         {
-            //try
-            //{
             if (port != null && port.IsOpen)
             {
                 port.Close();
             }
-            //}
-            //catch (Exception) { };
         }
     }
 }
