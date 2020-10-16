@@ -11,6 +11,10 @@ namespace ed64usb
         private static int pbar_interval = 0;
         private static int pbar_ctr = 0;
 
+
+        public const uint ROM_BASE_ADDRESS = 0x10000000;
+        public const uint RAM_BASE_ADDRESS = 0x80000000;
+
         private enum Command : byte
         {
             FormatRomMemory = (byte)'c', //char format 'c' artridge memory?
@@ -25,25 +29,37 @@ namespace ed64usb
 
         }
 
+        /// <summary>
+        /// Dumps the current framebuffer to a file in bitmap format
+        /// </summary>
+        /// <param name="filename">The file to be written to</param>
         public static void DumpScreenBuffer(string filename)
         {
+            short width = 320; //the menu only currently supports 320x240 resolution
+            short height = 240;
 
-            byte[] data = RamRead(0xA4400004, 512);// Get the scrreen buffer fom cartridge RAM
+            byte[] data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM
+            int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]; //convert endian (TODO: is this correct on linux?)
+            int len = width * height * 2;
 
-            int addr = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
-            int len = 320 * 240 * 2; //the Menu only supports 320x240 resolution
-
-            data = RamRead((uint)(0x80000000 | addr), len);
-            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(320, 240, data));
+            data = RamRead((uint)(RAM_BASE_ADDRESS | addr), len); // Get the framebuffer data from cartridge RAM
+            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));
         }
 
+        /// <summary>
+        /// Dumps the current ROM to a file
+        /// </summary>
+        /// <param name="filename">The filename</param>
         public static void DumpRom(string filename)
         {
-            byte[] data = RomRead(0x10000000, 0x101000);
+            byte[] data = RomRead(ROM_BASE_ADDRESS, 0x101000);
             File.WriteAllBytes(filename, data);
 
         }
 
+        /// <summary>
+        /// Check that the ROM can be wriien and read.
+        /// </summary>
         public static void RunDiagnostics()
         {
             byte[] writeBuffer = new byte[0x100000];
@@ -52,8 +68,8 @@ namespace ed64usb
             for (int i = 0; i < 0x800000; i += writeBuffer.Length)
             {
                 new Random().NextBytes(writeBuffer);
-                RomWrite(writeBuffer, 0x10000000);
-                readBuffer = RomRead(0x10000000, writeBuffer.Length);
+                RomWrite(writeBuffer, ROM_BASE_ADDRESS);
+                readBuffer = RomRead(ROM_BASE_ADDRESS, writeBuffer.Length);
 
                 for (int u = 0; u < writeBuffer.Length; u++)
                 {
@@ -62,6 +78,11 @@ namespace ed64usb
             }
         }
 
+        /// <summary>
+        /// Loads an FPGA RBF file
+        /// </summary>
+        /// <param name="filename">The filename to load</param>
+        /// <returns></returns>
         public static bool LoadFpga(string filename)
         {
             byte[] data = File.ReadAllBytes(filename);
@@ -78,6 +99,10 @@ namespace ed64usb
             return true;
         }
 
+        /// <summary>
+        /// Loads a ROM
+        /// </summary>
+        /// <param name="filename">The filename to load</param>
         public static void LoadRom(string filename)
         {
             byte[] data = File.ReadAllBytes(filename);
@@ -94,7 +119,7 @@ namespace ed64usb
             }
 
             uint fill_val = IsBootLoader(data) ? 0xffffffff : 0;
-            uint base_addr = 0x10000000;
+            uint base_addr = ROM_BASE_ADDRESS;
             if (isEmulatorROM) base_addr += 0x200000;
 
             FormatRomMemory(data.Length, fill_val);
@@ -190,7 +215,7 @@ namespace ed64usb
             if (romLength >= crcArea) return;
 
             Console.Write("Filling memory...");
-            UsbCmdTransmit(CommandProcessor.Command.FormatRomMemory, 0x10000000, crcArea, value);
+            UsbCmdTransmit(CommandProcessor.Command.FormatRomMemory, ROM_BASE_ADDRESS, crcArea, value);
             TestCommunication();
             Console.WriteLine("ok");
 
