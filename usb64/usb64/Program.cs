@@ -270,7 +270,7 @@ namespace ed64usb
             if (rom_len >= crc_area) return;
 
             Console.Write("Filling memory...");
-            UsbCmdTransmit('c', 0x10000000, crc_area, val);
+            UsbCmdTransmit(CommandPacket.Command.FormatRomMemory, 0x10000000, crc_area, val);
             UsbCmdTest();
             Console.WriteLine("ok");
 
@@ -283,7 +283,7 @@ namespace ed64usb
         /// <param name="address">Optional</param>
         /// <param name="length">Optional </param>
         /// <param name="argument">Optional</param>
-        private static void UsbCmdTransmit(char commandType, uint address = 0, int length = 0, uint argument = 0)
+        private static void UsbCmdTransmit(CommandPacket.Command commandType, uint address = 0, int length = 0, uint argument = 0)
         {
 
             byte[] cmd = new byte[16];
@@ -323,7 +323,7 @@ namespace ed64usb
             byte[] buff = new byte[256];
             Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
 
-            UsbCmdTransmit('s', 0, 0, 1);
+            UsbCmdTransmit(CommandPacket.Command.RomStart, 0, 0, 1);
 
             UsbWrite(buff);
         }
@@ -331,7 +331,7 @@ namespace ed64usb
         private static void UsbCmdFpga(byte[] data)
         {
             data = FixDataSize(data);
-            UsbCmdTransmit('f', 0, data.Length, 0);
+            UsbCmdTransmit(CommandPacket.Command.FpgaWrite, 0, data.Length, 0);
 
             Console.Write("FPGA config.");
             UsbWrite(data);
@@ -363,7 +363,7 @@ namespace ed64usb
         /// </summary>
         private static void UsbCmdTest()
         {
-            UsbCmdTransmit('t');
+            UsbCmdTransmit(CommandPacket.Command.TestConnection);
             UsbCmdReceive('r');
         }
 
@@ -376,7 +376,7 @@ namespace ed64usb
         private static byte[] UsbCmdRomRead(uint startAddress, int length)
         {
 
-            UsbCmdTransmit('R', startAddress, length, 0);
+            UsbCmdTransmit(CommandPacket.Command.RomRead, startAddress, length, 0);
 
             Console.Write("ROM READ.");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
@@ -396,7 +396,7 @@ namespace ed64usb
         private static byte[] UsbCmdRamRead(uint startAddress, int length)
         {
 
-            UsbCmdTransmit('r', startAddress, length, 0);
+            UsbCmdTransmit(CommandPacket.Command.RamRead, startAddress, length, 0);
 
             Console.Write("RAM READ.");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
@@ -418,7 +418,7 @@ namespace ed64usb
 
             int len = data.Length;
 
-            UsbCmdTransmit('W', startAddress, len, 0);
+            UsbCmdTransmit(CommandPacket.Command.RomWrite, startAddress, len, 0);
 
             Console.Write("ROM WR.");
             pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
