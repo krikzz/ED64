@@ -100,8 +100,10 @@ namespace ed64usb
 
             if (args.Length == 0)
             {
+                Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine();
-                Console.WriteLine("No Valid parameters!");
+                Console.WriteLine("No Valid arguments provided!");
+                Console.ResetColor();
                 DrawProgramHelp();
             }
             else
@@ -125,7 +127,11 @@ namespace ed64usb
                             break;
 
                         case string x when x.StartsWith("-diag"):
+                            Console.WriteLine("Performing USB diagnostics...");
                             CmdDiagnostics();
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine("USB diagnostics is complete!");
+                            Console.ResetColor();
                             break;
 
                         case string x when x.StartsWith("-drom"):
@@ -194,9 +200,6 @@ namespace ed64usb
             byte[] writeBuffer = new byte[0x100000];
             byte[] readBuffer;
 
-
-
-            Console.WriteLine("Performing USB diagnostics...");
             for (int i = 0; i < 0x800000; i += writeBuffer.Length)
             {
                 new Random().NextBytes(writeBuffer);
@@ -207,13 +210,7 @@ namespace ed64usb
                 {
                     if (writeBuffer[u] != readBuffer[u]) throw new Exception("USB diagnostics error: " + (i + u));
                 }
-
             }
-
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("USB diagnostics is complete!");
-            Console.ResetColor();
-
         }
 
         private static void Connect()
@@ -291,7 +288,7 @@ namespace ed64usb
 
             if (string.IsNullOrEmpty(subArg))
             {
-                throw new Exception("Parameter is incomplete!");
+                throw new Exception($"The {arg} argument is incomplete!");
             }
             return subArg;
         }
@@ -354,7 +351,7 @@ namespace ed64usb
         private static void UsbCmdStartRom(string fileName)
         {
             byte[] fname_bytes = Encoding.ASCII.GetBytes(fileName);
-            if (fileName.Length >= 256) throw new Exception("file name is too long");
+            if (fileName.Length >= 256) throw new Exception("Filename exceeds the 256 character limit.");
             byte[] buff = new byte[256];
             Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
 
