@@ -23,6 +23,28 @@ namespace ed64usb
             Console.ResetColor();
         }
 
+        private static void DrawProgramHelp()
+        {
+            Console.WriteLine("___________________________________________");
+            Console.WriteLine("Parameter list:");
+            Console.WriteLine("___________________________________________");
+            Console.WriteLine("A single parameter of:");
+            Console.WriteLine("<ROM filename>");
+            Console.WriteLine();
+            Console.WriteLine("Single or multiple parameters consisting of:");
+            Console.WriteLine();
+            Console.WriteLine("-fpga=<filename>");
+            Console.WriteLine("-rom=<filename>");
+            Console.WriteLine("-start");
+            Console.WriteLine("-diag");
+            Console.WriteLine("-drom=<filename>");
+            Console.WriteLine("-screen=<filename>");
+            //Console.WriteLine("-debug");
+            Console.WriteLine();
+
+
+        }
+
         private static void Main(string[] args)
         {
 
@@ -74,59 +96,71 @@ namespace ed64usb
 
             long time = DateTime.Now.Ticks;
 
-            foreach (string arg in args)
+
+
+            if (args.Length == 0)
             {
-                switch (arg)
-                {
-                    case string x when x.StartsWith("-fpga"):
-                        CmdFpga(ExtractArg(arg));
-                        break;
-
-                    case string x when x.StartsWith("-rom"):
-                        romName = ExtractArg(arg);
-                        CmdLoadRom(romName);
-                        break;
-
-                    case string x when x.StartsWith("-start"):
-                        startRom = true; //args could be in any order... wait until we have handled all arguments first.
-                        break;
-
-                    case string x when x.StartsWith("-diag"):
-                        CmdDiagnostics();
-                        break;
-
-                    case string x when x.StartsWith("-drom"):
-                        CmdDumpRom(ExtractArg(arg));
-                        break;
-
-                    case string x when x.StartsWith("-screen"):
-                        CmdDumpScreenBuffer(ExtractArg(arg));
-                        break;
-
-                    case string x when x.StartsWith("-debug"):
-                        //EnterDebugMode();
-                        Console.WriteLine("Not implemented yet...");
-                        break;
-
-                    default:
-                        if (arg.StartsWith("-"))
-                        {
-                            Console.WriteLine("Not implemented yet... check parameter is valid!");
-                        }
-                        else if (arg.ToLowerInvariant().EndsWith(".v64")); //try and load it as the ROM TODO: handle other ROM types
-                        {
-                            CmdLoadRom(ExtractArg(arg));
-                            UsbCmdStartRom(ExtractArg(arg));
-                        }
-                        break;
-                }
+                Console.WriteLine();
+                Console.WriteLine("No Valid parameters!");
+                DrawProgramHelp();
             }
-
-            if (startRom)
+            else
             {
-                if (romName != string.Empty)
+
+                foreach (string arg in args)
                 {
-                    UsbCmdStartRom(romName);
+                    switch (arg)
+                    {
+                        case string x when x.StartsWith("-fpga"):
+                            CmdFpga(ExtractSubArg(arg));
+                            break;
+
+                        case string x when x.StartsWith("-rom"):
+                            romName = ExtractSubArg(arg);
+                            CmdLoadRom(romName);
+                            break;
+
+                        case string x when x.StartsWith("-start"):
+                            startRom = true; //args could be in any order... wait until we have handled all arguments first.
+                            break;
+
+                        case string x when x.StartsWith("-diag"):
+                            CmdDiagnostics();
+                            break;
+
+                        case string x when x.StartsWith("-drom"):
+                            CmdDumpRom(ExtractSubArg(arg));
+                            break;
+
+                        case string x when x.StartsWith("-screen"):
+                            CmdDumpScreenBuffer(ExtractSubArg(arg));
+                            break;
+
+                        case string x when x.StartsWith("-debug"):
+                            //EnterDebugMode();
+                            Console.WriteLine("Not implemented yet...");
+                            break;
+
+                        default:
+                            if (arg.StartsWith("-"))
+                            {
+                                Console.WriteLine("Not implemented yet... check parameter is valid!");
+                            }
+                            else if (arg.ToLowerInvariant().EndsWith(".v64")) //try and load it as the ROM TODO: handle other ROM types
+                            {
+                                CmdLoadRom(ExtractSubArg(arg));
+                                UsbCmdStartRom(ExtractSubArg(arg));
+                            }
+                            break;
+                    }
+                }
+
+                if (startRom)
+                {
+                    if (romName != string.Empty)
+                    {
+                        UsbCmdStartRom(romName);
+                    }
                 }
             }
 
@@ -251,9 +285,15 @@ namespace ed64usb
             return bootloader;
         }
 
-        private static string ExtractArg(string cmd)
+        private static string ExtractSubArg(string arg)
         {
-            return cmd.Substring(cmd.IndexOf("=") + 1);
+            var subArg = arg.Substring(arg.IndexOf("=") + 1);
+
+            if (string.IsNullOrEmpty(subArg))
+            {
+                throw new Exception("Parameter is incomplete!");
+            }
+            return subArg;
         }
 
         // *************************** ED64 USB commands ***************************
