@@ -12,13 +12,21 @@ namespace ed64usb
         private static int pbar_interval = 0;
         private static int pbar_ctr = 0;
 
+        private static void DrawProgramHeader()
+        {
+            Console.OutputEncoding = Encoding.UTF8;
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.WriteLine("___________________________________________");
+            Console.WriteLine();
+            Console.WriteLine($"EverDrive64 x-series USB utility: V{Assembly.GetExecutingAssembly().GetName().Version}");
+            Console.WriteLine("___________________________________________");
+            Console.ResetColor();
+        }
+
         private static void Main(string[] args)
         {
 
-            Console.OutputEncoding = Encoding.UTF8;
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine($"Everdrive64 X-series USB utility, version:{ Assembly.GetEntryAssembly().GetName().Version }");
-            Console.ResetColor();
+            DrawProgramHeader();
 
             try
             {
@@ -46,7 +54,7 @@ namespace ed64usb
         private static void Usb64(string[] args)
         {
 
-            string rom_name = "default-usb-rom.v64";
+            var rom_name = string.Empty;
 
 
             Connect();
@@ -54,41 +62,47 @@ namespace ed64usb
 
             long time = DateTime.Now.Ticks;
 
-            for (int i = 0; i < args.Length; i++)
+            foreach (string arg in args)
             {
-
-                if (args[i].StartsWith("-fpga"))
+                switch (arg)
                 {
-                    CmdFpga(args[i]);
+                    case string x when x.StartsWith("-fpga"):
+                        CmdFpga(arg);
+                        break;
+
+                    case string x when x.StartsWith("-rom"):
+                        rom_name = ExtractArg(arg);
+                        CmdLoadRom(arg);
+                        break;
+
+                    case string x when x.StartsWith("-start"):
+                        if (rom_name != string.Empty)
+                        {
+                            UsbCmdStartRom(rom_name);  //TODO: args could be in any order... need to handle
+                        }
+                        break;
+
+                    case string x when x.StartsWith("-diag"):
+                        CmdDiagnostics();
+                        break;
+
+                    case string x when x.StartsWith("-drom"):
+                        CmdDumpRom(arg);
+                        break;
+
+                    case string x when x.StartsWith("-screen"):
+                        CmdDumpScreenBuffer(arg);
+                        break;
+
+                    case string x when x.StartsWith("-debug"):
+                        //EnterDebugMode();
+                        Console.WriteLine("Not implemented yet...");
+                        break;
+
+                    default:
+                        Console.WriteLine("Not implemented yet...");
+                        break;
                 }
-
-                if (args[i].StartsWith("-rom"))
-                {
-                    rom_name = ExtractArg(args[i]);
-                    CmdLoadRom(args[i]);
-                }
-
-                if (args[i].StartsWith("-start"))
-                {
-                    UsbCmdStartRom(rom_name);
-                }
-
-                if (args[i].StartsWith("-diag"))
-                {
-                    CmdDiagnostics();
-                }
-
-                if (args[i].StartsWith("-drom"))
-                {
-                    CmdDumpRom(args[i]);
-                }
-
-                if (args[i].StartsWith("-screen"))
-                {
-                    CmdDumpScreenBuffer(args[i]);
-                }
-
-
             }
 
             time = (DateTime.Now.Ticks - time) / 10000;
