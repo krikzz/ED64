@@ -65,27 +65,27 @@ namespace ed64usb
         public static void Fpga(string filename)
         {
             byte[] data = File.ReadAllBytes(filename);
-            UsbCmdFpga(data);
+            UsbTransmitFpgaData(data);
         }
 
         public static void LoadRom(string filename)
         {
             byte[] data = File.ReadAllBytes(filename);
-            bool is_emulator_rom;
+            bool isEmulatorROM;
 
 
             if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37))
             {
-                is_emulator_rom = false;
+                isEmulatorROM = false;
             }
             else
             {
-                is_emulator_rom = true;
+                isEmulatorROM = true;
             }
 
             uint fill_val = IsBootLoader(data) ? 0xffffffff : 0;
             uint base_addr = 0x10000000;
-            if (is_emulator_rom) base_addr += 0x200000;
+            if (isEmulatorROM) base_addr += 0x200000;
 
             CmemFill(data.Length, fill_val);
             RomWrite(data, base_addr);
@@ -102,7 +102,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomRead, startAddress, length, 0);
 
-            Console.Write("ROM READ.");
+            Console.Write("Reading ROM...");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbRead(length);
@@ -122,7 +122,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RamRead, startAddress, length, 0);
 
-            Console.Write("RAM READ.");
+            Console.Write("Reading RAM...");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbRead(length);
@@ -144,7 +144,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomWrite, startAddress, len, 0);
 
-            Console.Write("ROM WR.");
+            Console.Write("Writing ROM...");
             pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             UsbWrite(data, 0, len);
@@ -193,6 +193,18 @@ namespace ed64usb
             UsbCmdReceive('r');
         }
 
+        private static bool IsBootLoader(byte[] data)
+        {
+            bool bootloader = true;
+            const string BOOT_MESSAGE = "EverDrive bootloader";
+            for (int i = 0; i < BOOT_MESSAGE.ToCharArray().Length; i++)
+            {
+                if (BOOT_MESSAGE.ToCharArray()[i] != data[0x20 + i]) bootloader = false;
+            }
+
+            return bootloader;
+        }
+
 
         // *************************** ED64 USB commands ***************************
 
@@ -235,7 +247,7 @@ namespace ed64usb
             port.Write(cmd, 0, cmd.Length);
         }
 
-        private static void UsbCmdFpga(byte[] data)
+        private static void UsbTransmitFpgaData(byte[] data)
         {
             data = FixDataSize(data);
             UsbCmdTransmit(CommandProcessor.Command.FpgaWrite, 0, data.Length, 0);
@@ -289,15 +301,15 @@ namespace ed64usb
 
         // *************************** USB communication ***************************
 
-        private static void UsbRead(byte[] data, int offset, int len)
+        private static void UsbRead(byte[] data, int offset, int length)
         {
 
-            while (len > 0)
+            while (length > 0)
             {
                 int block_size = 32768;
-                if (block_size > len) block_size = len;
+                if (block_size > length) block_size = length;
                 int bytesread = port.Read(data, offset, block_size);
-                len -= bytesread;
+                length -= bytesread;
                 offset += bytesread;
                 PbarUpdate(bytesread);
             }
@@ -305,9 +317,9 @@ namespace ed64usb
             PbarReset();
         }
 
-        private static byte[] UsbRead(int len)
+        private static byte[] UsbRead(int length)
         {
-            byte[] data = new byte[len];
+            byte[] data = new byte[length];
             UsbRead(data, 0, data.Length);
             return data;
 
@@ -352,20 +364,7 @@ namespace ed64usb
         }
 
 
-
-
-        private static bool IsBootLoader(byte[] data)
-        {
-            bool bootloader = true;
-            const string BOOT_MESSAGE = "EverDrive bootloader";
-            for (int i = 0; i < BOOT_MESSAGE.ToCharArray().Length; i++)
-            {
-                if (BOOT_MESSAGE.ToCharArray()[i] != data[0x20 + i]) bootloader = false;
-            }
-
-            return bootloader;
-        }
-
+        // *************************** Serial port connection ***************************
 
         public static void Connect()
         {

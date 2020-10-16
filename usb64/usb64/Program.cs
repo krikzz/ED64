@@ -152,7 +152,7 @@ namespace ed64usb
             }
 
             time = (DateTime.Now.Ticks - time) / 10000;
-            Console.WriteLine("timezone: {0:D}.{1:D3}", time / 1000, time % 1000);
+            Console.WriteLine("Finished in: {0:D}.{1:D3} seconds.", time / 1000, time % 1000);
 
 
         }
