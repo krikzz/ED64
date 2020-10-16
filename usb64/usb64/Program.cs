@@ -95,10 +95,16 @@ namespace ed64usb
                     switch (arg)
                     {
                         case string x when x.StartsWith("-fpga"):
-                            CommandProcessor.Fpga(ExtractSubArg(arg));
+                            Console.Write("Sending FPGA config... ");
+                            var result = CommandProcessor.LoadFpga(ExtractSubArg(arg));
+                            if (result)
+                            {
+                                Console.WriteLine("Success.");
+                            }
                             break;
 
                         case string x when x.StartsWith("-rom"):
+                            Console.Write("Writing ROM...");
                             romName = ExtractSubArg(arg);
                             CommandProcessor.LoadRom(romName);
                             break;
@@ -109,17 +115,27 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-diag"):
                             Console.WriteLine("Performing USB diagnostics...");
-                            CommandProcessor.Diagnostics();
+                            CommandProcessor.RunDiagnostics();
                             Console.ForegroundColor = ConsoleColor.Green;
                             Console.WriteLine("USB diagnostics is complete!");
                             Console.ResetColor();
                             break;
 
                         case string x when x.StartsWith("-drom"):
+                            Console.Write("Reading ROM...");
                             CommandProcessor.DumpRom(ExtractSubArg(arg));
                             break;
 
+                        //case string x when x.StartsWith("-dram"):
+                        //    Console.Write("Reading RAM...");
+                        //    var startAddress = 0x00;
+                        //    var length = 1;
+                        //    CommandProcessor.RamRead(startAddress, length);
+                        //    File.WriteAllBytes(ExtractSubArg(arg));
+                        //    break;
+
                         case string x when x.StartsWith("-screen"):
+                            Console.Write("Reading Framebuffer...");
                             CommandProcessor.DumpScreenBuffer(ExtractSubArg(arg));
                             break;
 
@@ -157,9 +173,9 @@ namespace ed64usb
 
         }
 
-        private static string ExtractSubArg(string arg)
+        private static string ExtractSubArg(string arg, char delimiter = '=')
         {
-            var subArg = arg.Substring(arg.IndexOf("=") + 1);
+            var subArg = arg.Substring(arg.IndexOf(delimiter) + 1);
 
             if (string.IsNullOrEmpty(subArg))
             {

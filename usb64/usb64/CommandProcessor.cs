@@ -44,7 +44,7 @@ namespace ed64usb
 
         }
 
-        public static void Diagnostics()
+        public static void RunDiagnostics()
         {
             byte[] writeBuffer = new byte[0x100000];
             byte[] readBuffer;
@@ -62,10 +62,20 @@ namespace ed64usb
             }
         }
 
-        public static void Fpga(string filename)
+        public static bool LoadFpga(string filename)
         {
             byte[] data = File.ReadAllBytes(filename);
-            UsbTransmitFpgaData(data);
+
+            data = FixDataSize(data);
+            UsbCmdTransmit(CommandProcessor.Command.FpgaWrite, 0, data.Length, 0);
+
+            UsbWrite(data);
+            byte[] resp = UsbCmdReceive('r');
+            if (resp[4] != 0)
+            {
+                throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { resp[4] })}");
+            }
+            return true;
         }
 
         public static void LoadRom(string filename)
@@ -87,7 +97,7 @@ namespace ed64usb
             uint base_addr = 0x10000000;
             if (isEmulatorROM) base_addr += 0x200000;
 
-            CmemFill(data.Length, fill_val);
+            FormatRomMemory(data.Length, fill_val);
             RomWrite(data, base_addr);
         }
 
@@ -102,12 +112,11 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomRead, startAddress, length, 0);
 
-            Console.Write("Reading ROM...");
             pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbRead(length);
             time = DateTime.Now.Ticks - time;
-            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
+            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
         }
 
@@ -127,7 +136,7 @@ namespace ed64usb
             long time = DateTime.Now.Ticks;
             byte[] data = UsbRead(length);
             time = DateTime.Now.Ticks - time;
-            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
+            Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
         }
 
@@ -144,7 +153,6 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomWrite, startAddress, len, 0);
 
-            Console.Write("Writing ROM...");
             pbar_interval = len > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             UsbWrite(data, 0, len);
@@ -162,7 +170,11 @@ namespace ed64usb
         public static void StartRom(string fileName)
         {
             byte[] fname_bytes = Encoding.ASCII.GetBytes(fileName);
-            if (fileName.Length >= 256) throw new Exception("Filename exceeds the 256 character limit.");
+            if (fileName.Length >= 256)
+            {
+                throw new Exception("Filename exceeds the 256 character limit.");
+            }
+
             byte[] buff = new byte[256];
             Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length);
 
@@ -172,14 +184,14 @@ namespace ed64usb
         }
 
 
-        private static void CmemFill(int rom_len, uint val) //I am guessing this stands for cartridge memory?
+        private static void FormatRomMemory(int romLength, uint value)
         {
-            int crc_area = 0x100000 + 4096;
-            if (rom_len >= crc_area) return;
+            int crcArea = 0x100000 + 4096;
+            if (romLength >= crcArea) return;
 
             Console.Write("Filling memory...");
-            UsbCmdTransmit(CommandProcessor.Command.FormatRomMemory, 0x10000000, crc_area, val);
-            UsbCmdTest();
+            UsbCmdTransmit(CommandProcessor.Command.FormatRomMemory, 0x10000000, crcArea, value);
+            TestCommunication();
             Console.WriteLine("ok");
 
         }
@@ -187,7 +199,7 @@ namespace ed64usb
         /// <summary>
         /// Test that USB port is able to transmit and receive
         /// </summary>
-        private static void UsbCmdTest()
+        private static void TestCommunication()
         {
             UsbCmdTransmit(CommandProcessor.Command.TestConnection);
             UsbCmdReceive('r');
@@ -244,19 +256,7 @@ namespace ed64usb
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
 
-            port.Write(cmd, 0, cmd.Length);
-        }
-
-        private static void UsbTransmitFpgaData(byte[] data)
-        {
-            data = FixDataSize(data);
-            UsbCmdTransmit(CommandProcessor.Command.FpgaWrite, 0, data.Length, 0);
-
-            Console.Write("FPGA config.");
-            UsbWrite(data);
-            byte[] resp = UsbCmdReceive('r');
-            if (resp[4] != 0) throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { resp[4] })}");
-            Console.WriteLine("ok");
+            port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbWrite()???
         }
 
         /// <summary>
@@ -379,7 +379,7 @@ namespace ed64usb
                     port.Open();
                     port.ReadTimeout = 200;
                     port.WriteTimeout = 200;
-                    UsbCmdTest();
+                    TestCommunication();
                     port.ReadTimeout = 2000;
                     port.WriteTimeout = 2000;
                     Console.WriteLine($"Everdrive64 X-series found on serialport {ports_list[i]}");
