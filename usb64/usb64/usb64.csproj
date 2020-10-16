@@ -9,6 +9,7 @@
     <PackageProjectUrl>https://github.com/krikzz/ED64/</PackageProjectUrl>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
+    <RootNamespace>ed64usb</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
