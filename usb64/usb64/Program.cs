@@ -41,20 +41,32 @@ namespace ed64usb
                 Console.ResetColor();
             }
 
-            try
-            {
+            ClosePort();
+
+        }
+
+        ~Program()
+        {
+            ClosePort();
+        }
+
+        private static void ClosePort()
+        {
+            //try
+            //{
                 if (port != null && port.IsOpen)
                 {
                     port.Close();
                 }
-            }
-            catch (Exception) { };
+            //}
+            //catch (Exception) { };
         }
 
         private static void Usb64(string[] args)
         {
 
             var rom_name = string.Empty;
+            var startRom = false;
 
 
             Connect();
@@ -76,10 +88,7 @@ namespace ed64usb
                         break;
 
                     case string x when x.StartsWith("-start"):
-                        if (rom_name != string.Empty)
-                        {
-                            UsbCmdStartRom(rom_name);  //TODO: args could be in any order... need to handle
-                        }
+                        startRom = true; //args could be in any order... wait until we have handled all arguments first.
                         break;
 
                     case string x when x.StartsWith("-diag"):
@@ -100,8 +109,24 @@ namespace ed64usb
                         break;
 
                     default:
-                        Console.WriteLine("Not implemented yet...");
+                        if (arg.StartsWith("-"))
+                        {
+                            Console.WriteLine("Not implemented yet...");
+                        }
+                        else if (arg.ToLowerInvariant().EndsWith(".v64")); //try and load it as the ROM TODO: handle other ROM types
+                        {
+                            CmdLoadRom(arg);
+                            UsbCmdStartRom(arg);
+                        }
                         break;
+                }
+            }
+
+            if (startRom)
+            {
+                if (rom_name != string.Empty)
+                {
+                    UsbCmdStartRom(rom_name);
                 }
             }
 
@@ -180,12 +205,7 @@ namespace ed64usb
                 }
                 catch (Exception) { }
 
-                try
-                {
-                    port.Close();
-                    port = null;
-                }
-                catch (Exception) { }
+                ClosePort();
 
             }
 
