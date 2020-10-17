@@ -40,6 +40,13 @@ namespace ed64usb
 
         }
 
+        private static void DrawProgramFooter()
+        {
+            Console.WriteLine();
+            Console.WriteLine("___________________________________________");
+            Console.WriteLine("Get Help from 'https://krikzz.com'");
+        }
+
         private static void Main(string[] args)
         {
 
@@ -49,6 +56,8 @@ namespace ed64usb
             {
                 CommandProcessor.Connect();
                 HandleArguments(args);
+
+                DrawProgramFooter();
 
             }
             catch (Exception exception)
@@ -126,10 +135,10 @@ namespace ed64usb
                             CommandProcessor.DumpRom(ExtractSubArg(arg));
                             break;
 
-                        //case string x when x.StartsWith("-dram"):
+                        //case string x when x.StartsWith("-dram"): //TODO: we need to handle more than just the first 512 bytes!
                         //    Console.Write("Reading RAM...");
-                        //    var startAddress = 0x00;
-                        //    var length = 1;
+                        //    var startAddress = CommandProcessor.RAM_BASE_ADDRESS;
+                        //    var length = 512; //first chunk
                         //    CommandProcessor.RamRead(startAddress, length);
                         //    File.WriteAllBytes(ExtractSubArg(arg));
                         //    break;
@@ -141,15 +150,17 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-debug"):
                             //EnterDebugMode();
-                            Console.WriteLine("Not implemented yet...");
+                            Console.WriteLine("debug mode not implemented yet...");
                             break;
 
                         default:
                             if (arg.StartsWith("-"))
                             {
-                                Console.WriteLine("Not implemented yet... check parameter is valid!");
+                                Console.WriteLine($"'{arg}' Not implemented yet... check parameter is valid!");
+                                Console.WriteLine();
+                                DrawProgramHelp();
                             }
-                            else if (arg.ToLowerInvariant().EndsWith(".v64")) //try and load it as the ROM TODO: handle other ROM types
+                            else if (arg.ToLowerInvariant().EndsWith(".v64")) //try and load it as the ROM. TODO: handle other ROM types
                             {
                                 CommandProcessor.LoadRom(ExtractSubArg(arg));
                                 CommandProcessor.StartRom(ExtractSubArg(arg));
