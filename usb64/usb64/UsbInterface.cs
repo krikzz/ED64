@@ -8,7 +8,7 @@ namespace ed64usb
     public static class UsbInterface
     {
 
-        private static SerialPort port;
+        public static SerialPort port;
         public static int pbar_interval = 0;
         public static int pbar_ctr = 0;
 

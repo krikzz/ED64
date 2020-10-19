@@ -288,7 +288,7 @@ namespace ed64usb
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
 
-            UsbInterface.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbWrite()???
+            UsbInterface.port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbWrite()???
         }
 
         /// <summary>
