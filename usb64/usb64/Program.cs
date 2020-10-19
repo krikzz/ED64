@@ -44,7 +44,7 @@ namespace ed64usb
         {
             Console.WriteLine();
             Console.WriteLine("___________________________________________");
-            Console.WriteLine("Get Help from 'https://krikzz.com'");
+            Console.WriteLine("Get support at 'https://krikzz.com'");
         }
 
         private static void Main(string[] args)
@@ -54,7 +54,7 @@ namespace ed64usb
 
             try
             {
-                CommandProcessor.Connect();
+                UsbInterface.Connect();
                 HandleArguments(args);
 
                 DrawProgramFooter();
@@ -68,13 +68,13 @@ namespace ed64usb
                 Console.ResetColor();
             }
 
-            CommandProcessor.ClosePort();
+            UsbInterface.ClosePort();
 
         }
 
         ~Program()
         {
-            CommandProcessor.ClosePort();
+            UsbInterface.ClosePort();
         }
 
 

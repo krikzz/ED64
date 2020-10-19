@@ -7,10 +7,6 @@ namespace ed64usb
 {
     public static class CommandProcessor
     {
-        private static SerialPort port;
-        private static int pbar_interval = 0;
-        private static int pbar_ctr = 0;
-
 
         public const uint ROM_BASE_ADDRESS = 0x10000000;
         public const uint RAM_BASE_ADDRESS = 0x80000000;
@@ -90,7 +86,7 @@ namespace ed64usb
             data = FixDataSize(data);
             UsbCmdTransmit(CommandProcessor.Command.FpgaWrite, 0, data.Length, 0);
 
-            UsbWrite(data);
+            UsbInterface.Write(data);
             byte[] responseBytes = UsbCmdReceive('r');
             if (responseBytes[4] != 0)
             {
@@ -137,9 +133,9 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomRead, startAddress, length, 0);
 
-            pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            byte[] data = UsbRead(length);
+            byte[] data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
@@ -157,9 +153,9 @@ namespace ed64usb
             UsbCmdTransmit(CommandProcessor.Command.RamRead, startAddress, length, 0);
 
             Console.Write("Reading RAM...");
-            pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            byte[] data = UsbRead(length);
+            byte[] data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
@@ -178,9 +174,9 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomWrite, startAddress, length, 0);
 
-            pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            UsbWrite(data, 0, length);
+            UsbInterface.Write(data, 0, length);
             time = DateTime.Now.Ticks - time;
 
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
@@ -205,7 +201,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.Command.RomStart, 0, 0, 1);
 
-            UsbWrite(buff);
+            UsbInterface.Write(buff);
         }
 
 
@@ -224,7 +220,7 @@ namespace ed64usb
         /// <summary>
         /// Test that USB port is able to transmit and receive
         /// </summary>
-        private static void TestCommunication()
+        public static void TestCommunication()
         {
             UsbCmdTransmit(CommandProcessor.Command.TestConnection);
             UsbCmdReceive('r');
@@ -281,7 +277,7 @@ namespace ed64usb
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
 
-            port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbWrite()???
+            UsbInterface.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbWrite()???
         }
 
         /// <summary>
@@ -292,7 +288,7 @@ namespace ed64usb
         private static byte[] UsbCmdReceive(char responseType)
         {
 
-            byte[] cmd = UsbRead(16);
+            byte[] cmd = UsbInterface.Read(16);
             if (cmd[0] != 'c') throw new Exception("Corrupted response.");
             if (cmd[1] != 'm') throw new Exception("Corrupted response.");
             if (cmd[2] != 'd') throw new Exception("Corrupted response.");
@@ -322,110 +318,6 @@ namespace ed64usb
             Array.Copy(data, 0, buff, 0, data.Length);
 
             return buff;
-        }
-
-        // *************************** USB communication ***************************
-
-        private static void UsbRead(byte[] data, int offset, int length)
-        {
-
-            while (length > 0)
-            {
-                int block_size = 32768;
-                if (block_size > length) block_size = length;
-                int bytesread = port.Read(data, offset, block_size);
-                length -= bytesread;
-                offset += bytesread;
-                PbarUpdate(bytesread);
-            }
-
-            PbarReset();
-        }
-
-        private static byte[] UsbRead(int length)
-        {
-            byte[] data = new byte[length];
-            UsbRead(data, 0, data.Length);
-            return data;
-
-        }
-
-        private static void UsbWrite(byte[] data, int offset, int len)
-        {
-
-            while (len > 0)
-            {
-                int block_size = 32768;
-                if (block_size > len) block_size = len;
-                port.Write(data, offset, block_size);
-                len -= block_size;
-                offset += block_size;
-                PbarUpdate(block_size);
-            }
-
-            PbarReset();
-
-        }
-
-        private static void UsbWrite(byte[] data)
-        {
-            UsbWrite(data, 0, data.Length);
-        }
-
-        private static void PbarUpdate(int val)
-        {
-            if (pbar_interval == 0) return;
-            pbar_ctr += val;
-            if (pbar_ctr < pbar_interval) return;
-
-            pbar_ctr -= pbar_interval;
-            Console.Write(".");
-        }
-
-        private static void PbarReset()
-        {
-            pbar_interval = 0;
-            pbar_ctr = 0;
-        }
-
-
-        // *************************** Serial port connection ***************************
-        //TODO: move this back to the main class and call this class as non static (passing the serialport in)
-
-        public static void Connect()
-        {
-            string[] ports = SerialPort.GetPortNames();
-
-            foreach (var p in ports)
-            {
-
-                try
-                {
-                    port = new SerialPort(p);
-                    port.Open();
-                    port.ReadTimeout = 200;
-                    port.WriteTimeout = 200;
-                    TestCommunication();
-                    port.ReadTimeout = 2000;
-                    port.WriteTimeout = 2000;
-                    Console.WriteLine($"Everdrive64 X-series found on serialport {p}");
-                    return;
-                }
-                catch (Exception) { }
-
-                ClosePort();
-
-            }
-
-            throw new Exception("Everdrive64 X-series device not found! \nCheck that the USB cable is connected and the console is powered on.");
-        }
-
-        public static void ClosePort()
-        {
-            if (port != null && port.IsOpen)
-            {
-                port.Close();
-            }
         }
     }
 }
