@@ -122,6 +122,17 @@ namespace ed64usb
             RomWrite(data, baseAddress);
         }
 
+
+        public static void DebugCommand()
+        {
+            //EnterDebugMode();
+            char[] data = { 'D', 'M', 'A', '@' };
+            var baseAddress = ROM_BASE_ADDRESS;
+            baseAddress += 0x3F00000;
+            RomWrite(Encoding.ASCII.GetBytes(data), baseAddress);
+        }
+
+
         /// <summary>
         /// Reads the Cartridge ROM
         /// </summary>

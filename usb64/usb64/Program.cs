@@ -83,6 +83,7 @@ namespace ed64usb
 
             var romName = string.Empty;
             var startRom = false;
+            var debugRom = false;
 
             long time = DateTime.Now.Ticks;
 
@@ -149,8 +150,7 @@ namespace ed64usb
                             break;
 
                         case string x when x.StartsWith("-debug"):
-                            //EnterDebugMode();
-                            Console.WriteLine("debug mode not implemented yet...");
+                            debugRom = true;
                             break;
 
                         default:
@@ -167,6 +167,11 @@ namespace ed64usb
                             }
                             break;
                     }
+                }
+
+                if (debugRom)
+                {
+                    CommandProcessor.DebugCommand();
                 }
 
                 if (startRom)
