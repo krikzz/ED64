@@ -7,6 +7,13 @@ namespace ed64usb
     internal class Program
     {
 
+        public enum CartOsType
+        {
+            V3_Official,
+            V3_Unofficial,
+            X7_Official
+        }
+
         private static void DrawProgramHeader()
         {
             Console.OutputEncoding = Encoding.UTF8;
