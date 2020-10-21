@@ -178,7 +178,7 @@ namespace ed64usb
         /// <param name="data">The data to write</param>
         /// <param name="startAddress">The start address</param>
         /// <returns></returns>
-        public static byte[] RomWrite(byte[] data, uint startAddress)
+        public static byte[] RomWrite(byte[] data, uint startAddress, bool littleEndian = true)
         {
 
             int length = data.Length;
@@ -288,7 +288,7 @@ namespace ed64usb
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
 
-            UsbInterface.port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbWrite()???
+            UsbInterface.port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbInterface.Write()???
         }
 
         /// <summary>
