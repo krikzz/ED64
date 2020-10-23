@@ -59,12 +59,16 @@ namespace ed64usb
 
         private static void portBytesReadTimer_Update(int value)
         {
-            if (PortBytesReadTimerInterval == 0) return;
-            PortBytesReadTimerCounter += value;
-            if (PortBytesReadTimerCounter < PortBytesReadTimerInterval) return;
-
-            PortBytesReadTimerCounter -= PortBytesReadTimerInterval;
-            Console.Write(".");
+            if (PortBytesReadTimerInterval != 0)
+            {
+                PortBytesReadTimerCounter += value;
+            }
+            
+            if (PortBytesReadTimerCounter > PortBytesReadTimerInterval)
+            {
+                PortBytesReadTimerCounter -= PortBytesReadTimerInterval;
+                Console.Write(".");
+            }
         }
 
         private static void portBytesReadTimer_Reset()
