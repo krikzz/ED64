@@ -109,9 +109,25 @@ namespace ed64usb
             byte[] data = File.ReadAllBytes(filename);
             bool isEmulatorROM;
 
-
-            if ((data[0] == 0x80 && data[1] == 0x37) || (data[1] == 0x80 && data[0] == 0x37)) //check the file header matches a valid N64 ROM.
+            //TODO: switch statement!
+            //check the file header matches a valid N64 ROM.
+            if (data[0] == 0x80 && data[1] == 0x37 && data[2] == 0x12 && data[3] == 0x40) //Z64
             {
+                Console.WriteLine("Rom format (Z64).");
+                //No Conversion necessary.
+                isEmulatorROM = false;
+            }
+            else if (data[1] == 0x80 && data[0] == 0x37 && data[2] == 0x40 && data[3] == 0x12) //V64
+            {
+                Console.WriteLine("Rom format (V64).");
+                //No Conversion necessary.
+                isEmulatorROM = false;
+            }
+            else if (data[0] == 0x40 && data[1] == 0x12 && data[2] == 0x37 && data[3] == 0x80) //N64
+            {
+                //ROM is N64 type and we need to byteswap
+                Console.WriteLine("Rom format (n64) is probably unsupported!"); //TODO: convert!
+
                 isEmulatorROM = false;
             }
             else

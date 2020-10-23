@@ -11,7 +11,8 @@ namespace ed64usb
         {
             V3_Official,
             V3_Unofficial,
-            X7_Official
+            X7_Official,
+            Unknown
         }
 
         private static void DrawProgramHeader()
