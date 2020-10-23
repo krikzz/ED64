@@ -35,7 +35,7 @@ namespace ed64usb
 
         }
 
-        public static void Write(byte[] data, int offset, int length)
+        private static void Write(byte[] data, int offset, int length)
         {
 
             while (length > 0)

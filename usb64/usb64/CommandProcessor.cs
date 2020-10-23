@@ -239,7 +239,7 @@ namespace ed64usb
 
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
-            UsbInterface.Write(data, 0, length);
+            UsbInterface.Write(data);
             time = DateTime.Now.Ticks - time;
 
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}");
@@ -344,7 +344,7 @@ namespace ed64usb
 
             //Console.WriteLine($"bitwise Command {BitConverter.ToString(cmd)}");
 
-            UsbInterface.Write(cmd, 0, cmd.Length);
+            UsbInterface.Write(cmd);
 
             // TODO: there is no reason why the below doesn't work, however it generally times out.
             //var commandPacket = new List<byte>();
