@@ -145,10 +145,10 @@ namespace ed64usb
                             CommandProcessor.DumpRom(ExtractSubArg(arg));
                             break;
 
-                        //case string x when x.StartsWith("-dram"): //TODO: we need to handle more than just the first 512 bytes!
+                        //case string x when x.StartsWith("-dram"):
                         //    Console.Write("Reading RAM...");
                         //    var startAddress = CommandProcessor.RAM_BASE_ADDRESS;
-                        //    var length = 512; //first chunk
+                        //    var length = 512; //first chunk //TODO: we would need to handle more than just the first 512 bytes!
                         //    CommandProcessor.RamRead(startAddress, length);
                         //    File.WriteAllBytes(ExtractSubArg(arg));
                         //    break;
