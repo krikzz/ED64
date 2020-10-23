@@ -154,7 +154,7 @@ namespace ed64usb
                         //    break;
 
                         case string x when x.StartsWith("-screen"):
-                            Console.Write("Reading Framebuffer...");
+                            Console.WriteLine("Reading Framebuffer.");
                             CommandProcessor.DumpScreenBuffer(ExtractSubArg(arg));
                             break;
 
@@ -169,8 +169,9 @@ namespace ed64usb
                                 Console.WriteLine();
                                 DrawProgramHelp();
                             }
-                            else if (arg.ToLowerInvariant().EndsWith(".v64")) //try and load it as the ROM. TODO: handle other ROM types
+                            else if (File.Exists(arg))
                             {
+                                Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start.");
                                 CommandProcessor.LoadRom(ExtractSubArg(arg));
                                 CommandProcessor.StartRom(ExtractSubArg(arg));
                             }
