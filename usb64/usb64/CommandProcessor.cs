@@ -320,35 +320,42 @@ namespace ed64usb
         private static void UsbCmdTransmit(CommandProcessor.TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
 
-            byte[] cmd = new byte[16];  // new List<byte>();
+            byte[] cmd = new byte[16];
             length /= 512;
 
-            //cmd.AddRange(Encoding.ASCII.GetBytes("cmd"));
             cmd[0] = (byte)'c';
             cmd[1] = (byte)'m';
             cmd[2] = (byte)'d';
             cmd[3] = (byte)commandType;
-            //cmd.Add((byte)commandType);
 
             cmd[4] = (byte)(address >> 24);
             cmd[5] = (byte)(address >> 16);
             cmd[6] = (byte)(address >> 8);
             cmd[7] = (byte)(address >> 0);
-            //cmd.AddRange(BitConverter.GetBytes(address).Reverse());
 
             cmd[8] = (byte)(length >> 24);
             cmd[9] = (byte)(length >> 16);
             cmd[10] = (byte)(length >> 8);
             cmd[11] = (byte)(length >> 0);
-            //cmd.AddRange(BitConverter.GetBytes(length).Reverse());
 
             cmd[12] = (byte)(argument >> 24);
             cmd[13] = (byte)(argument >> 16);
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
-            //cmd.AddRange(BitConverter.GetBytes(argument).Reverse());
+            
+            UsbInterface.Write(cmd, 0, cmd.Length);
 
-            UsbInterface.port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbInterface.Write()???
+            //var cmd = new List<byte>();
+
+            //cmd.AddRange(Encoding.ASCII.GetBytes("cmd"));
+            //cmd.Add((byte)commandType);
+            //cmd.AddRange(BitConverter.GetBytes(address));
+            //cmd.AddRange(BitConverter.GetBytes(length));
+            //cmd.AddRange(BitConverter.GetBytes(argument));
+
+            //UsbInterface.port.Write(cmd.ToArray(), 0, cmd.Count); //TODO: any implications if we switch to UsbInterface.Write()???
+
+
         }
 
         /// <summary>
