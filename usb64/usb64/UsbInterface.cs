@@ -7,10 +7,9 @@ namespace ed64usb
     {
 
         private static SerialPort port;
-        public static int pbar_interval = 0;
-        public static int pbar_ctr = 0;
+        public static int PortBytesReadTimerInterval = 0;
+        public static int PortBytesReadTimerCounter = 0;
 
-        // *************************** USB communication ***************************
 
         public static void Read(byte[] data, int offset, int length)
         {
@@ -22,10 +21,10 @@ namespace ed64usb
                 int bytesread = port.Read(data, offset, block_size);
                 length -= bytesread;
                 offset += bytesread;
-                PbarUpdate(bytesread);
+                portBytesReadTimer_Update(bytesread);
             }
 
-            PbarReset();
+            portBytesReadTimer_Reset();
         }
 
         public static byte[] Read(int length)
@@ -36,20 +35,20 @@ namespace ed64usb
 
         }
 
-        public static void Write(byte[] data, int offset, int len)
+        public static void Write(byte[] data, int offset, int length)
         {
 
-            while (len > 0)
+            while (length > 0)
             {
-                int block_size = 32768;
-                if (block_size > len) block_size = len;
-                port.Write(data, offset, block_size);
-                len -= block_size;
-                offset += block_size;
-                PbarUpdate(block_size);
+                int blockSize = 32768;
+                if (blockSize > length) blockSize = length;
+                port.Write(data, offset, blockSize);
+                length -= blockSize;
+                offset += blockSize;
+                portBytesReadTimer_Update(blockSize);
             }
 
-            PbarReset();
+            portBytesReadTimer_Reset();
 
         }
 
@@ -58,20 +57,20 @@ namespace ed64usb
             Write(data, 0, data.Length);
         }
 
-        private static void PbarUpdate(int val)
+        private static void portBytesReadTimer_Update(int value)
         {
-            if (pbar_interval == 0) return;
-            pbar_ctr += val;
-            if (pbar_ctr < pbar_interval) return;
+            if (PortBytesReadTimerInterval == 0) return;
+            PortBytesReadTimerCounter += value;
+            if (PortBytesReadTimerCounter < PortBytesReadTimerInterval) return;
 
-            pbar_ctr -= pbar_interval;
+            PortBytesReadTimerCounter -= PortBytesReadTimerInterval;
             Console.Write(".");
         }
 
-        private static void PbarReset()
+        private static void portBytesReadTimer_Reset()
         {
-            pbar_interval = 0;
-            pbar_ctr = 0;
+            PortBytesReadTimerInterval = 0;
+            PortBytesReadTimerCounter = 0;
         }
 
 

@@ -196,7 +196,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.TransmitCommand.RomRead, startAddress, length, 0);
 
-            UsbInterface.pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.PortBytesReadTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
@@ -216,7 +216,7 @@ namespace ed64usb
             UsbCmdTransmit(CommandProcessor.TransmitCommand.RamRead, startAddress, length, 0);
 
             Console.Write("Reading RAM...");
-            UsbInterface.pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.PortBytesReadTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
@@ -237,7 +237,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.TransmitCommand.RomWrite, startAddress, length, 0);
 
-            UsbInterface.pbar_interval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.PortBytesReadTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             UsbInterface.Write(data, 0, length);
             time = DateTime.Now.Ticks - time;
@@ -341,18 +341,22 @@ namespace ed64usb
             cmd[13] = (byte)(argument >> 16);
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
-            
+
+            //Console.WriteLine($"bitwise Command {BitConverter.ToString(cmd)}");
+
             UsbInterface.Write(cmd, 0, cmd.Length);
 
-            //var cmd = new List<byte>();
+            // TODO: there is no reason why the below doesn't work, however it generally times out.
+            //var commandPacket = new List<byte>();
 
-            //cmd.AddRange(Encoding.ASCII.GetBytes("cmd"));
-            //cmd.Add((byte)commandType);
-            //cmd.AddRange(BitConverter.GetBytes(address));
-            //cmd.AddRange(BitConverter.GetBytes(length));
-            //cmd.AddRange(BitConverter.GetBytes(argument));
+            //commandPacket.AddRange(Encoding.ASCII.GetBytes("cmd"));
+            //commandPacket.Add((byte)commandType);
+            //commandPacket.AddRange(BitConverter.GetBytes(address).Reverse()); //Big Endian
+            //commandPacket.AddRange(BitConverter.GetBytes(length).Reverse()); //Big Endian
+            //commandPacket.AddRange(BitConverter.GetBytes(argument).Reverse()); //Big Endian
+            //Console.WriteLine($"List Command {BitConverter.ToString(commandPacket.ToArray())}");
 
-            //UsbInterface.Write(cmd.ToArray(), 0, cmd.Count);
+            //UsbInterface.Write(commandPacket.ToArray());
 
 
         }
