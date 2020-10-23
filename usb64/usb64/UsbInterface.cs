@@ -7,8 +7,8 @@ namespace ed64usb
     {
 
         private static SerialPort port;
-        public static int PortBytesReadTimerInterval = 0;
-        public static int PortBytesReadTimerCounter = 0;
+        public static int ProgressBarTimerInterval = 0;
+        public static int ProgressBarTimerCounter = 0;
 
 
         public static void Read(byte[] data, int offset, int length)
@@ -21,10 +21,10 @@ namespace ed64usb
                 int bytesread = port.Read(data, offset, block_size);
                 length -= bytesread;
                 offset += bytesread;
-                portBytesReadTimer_Update(bytesread);
+                progressBarTimer_Update(bytesread);
             }
 
-            portBytesReadTimer_Reset();
+            progressBarTimer_Reset();
         }
 
         public static byte[] Read(int length)
@@ -45,10 +45,10 @@ namespace ed64usb
                 port.Write(data, offset, blockSize);
                 length -= blockSize;
                 offset += blockSize;
-                portBytesReadTimer_Update(blockSize);
+                progressBarTimer_Update(blockSize);
             }
 
-            portBytesReadTimer_Reset();
+            progressBarTimer_Reset();
 
         }
 
@@ -57,24 +57,24 @@ namespace ed64usb
             Write(data, 0, data.Length);
         }
 
-        private static void portBytesReadTimer_Update(int value)
+        private static void progressBarTimer_Update(int value)
         {
-            if (PortBytesReadTimerInterval != 0)
+            if (ProgressBarTimerInterval != 0)
             {
-                PortBytesReadTimerCounter += value;
+                ProgressBarTimerCounter += value;
             }
             
-            if (PortBytesReadTimerCounter > PortBytesReadTimerInterval)
+            if (ProgressBarTimerCounter > ProgressBarTimerInterval)
             {
-                PortBytesReadTimerCounter -= PortBytesReadTimerInterval;
+                ProgressBarTimerCounter -= ProgressBarTimerInterval;
                 Console.Write(".");
             }
         }
 
-        private static void portBytesReadTimer_Reset()
+        private static void progressBarTimer_Reset()
         {
-            PortBytesReadTimerInterval = 0;
-            PortBytesReadTimerCounter = 0;
+            ProgressBarTimerInterval = 0;
+            ProgressBarTimerCounter = 0;
         }
 
 

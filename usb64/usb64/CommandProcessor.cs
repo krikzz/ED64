@@ -196,7 +196,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.TransmitCommand.RomRead, startAddress, length, 0);
 
-            UsbInterface.PortBytesReadTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
@@ -216,7 +216,7 @@ namespace ed64usb
             UsbCmdTransmit(CommandProcessor.TransmitCommand.RamRead, startAddress, length, 0);
 
             Console.Write("Reading RAM...");
-            UsbInterface.PortBytesReadTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             byte[] data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
@@ -237,7 +237,7 @@ namespace ed64usb
 
             UsbCmdTransmit(CommandProcessor.TransmitCommand.RomWrite, startAddress, length, 0);
 
-            UsbInterface.PortBytesReadTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
             UsbInterface.Write(data, 0, length);
             time = DateTime.Now.Ticks - time;
