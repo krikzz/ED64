@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.IO.Ports;
 using System.Text;
 
 namespace ed64usb
@@ -131,11 +130,12 @@ namespace ed64usb
 
         public static void DebugCommand()
         {
+            Console.WriteLine("Debug capabilities not implemented yet...!");
             //EnterDebugMode();
-            char[] data = { 'D', 'M', 'A', '@' };
-            var baseAddress = ROM_BASE_ADDRESS;
-            baseAddress += 0x3F00000;
-            RomWrite(Encoding.ASCII.GetBytes(data), baseAddress);
+            //char[] data = { 'D', 'M', 'A', '@' };
+            //var baseAddress = ROM_BASE_ADDRESS;
+            //baseAddress += 0x3F00000;
+            ////RomWrite(Encoding.ASCII.GetBytes(data), baseAddress);
         }
 
 
