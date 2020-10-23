@@ -116,11 +116,10 @@ namespace ed64usb
 
                     using (BinaryReader br = new BinaryReader(fs))
                     {
-                        byte[] header = new byte[4];
-                        header = br.ReadBytes(4);
-                        br.BaseStream.Position = 0; //reset the position for when we need to read the full ROM.
+                        byte[] header = br.ReadBytes(4); //TODO: read an int, then we can use a case statement
+                        br.BaseStream.Position = 0; //reset the stream position for when we need to read the full ROM.
                         List<byte> romBytes = new List<byte>();
-                        bool isEmulatorROM = false;
+                        uint baseAddress = ROM_BASE_ADDRESS;
 
                         //check the file header matches a valid N64 ROM.
                         if (header[0] == 0x80 && header[1] == 0x37 && header[2] == 0x12 && header[3] == 0x40) //Z64
@@ -163,15 +162,13 @@ namespace ed64usb
                             romBytes.AddRange(chunk);
 
                         }
-                        else
+                        else //Presume it is an emulator ROM
                         {
-                            isEmulatorROM = true;
+                            baseAddress += 0x200000;
                         }
 
                         uint fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
-                        uint baseAddress = ROM_BASE_ADDRESS;
-                        if (isEmulatorROM) baseAddress += 0x200000;
-
+                        
                         FormatRomMemory(romBytes.ToArray().Length, fillValue);
                         RomWrite(romBytes.ToArray(), baseAddress);
                     }
@@ -353,7 +350,7 @@ namespace ed64usb
             //cmd.AddRange(BitConverter.GetBytes(length));
             //cmd.AddRange(BitConverter.GetBytes(argument));
 
-            //UsbInterface.port.Write(cmd.ToArray(), 0, cmd.Count); //TODO: any implications if we switch to UsbInterface.Write()???
+            //UsbInterface.Write(cmd.ToArray(), 0, cmd.Count);
 
 
         }
