@@ -29,7 +29,7 @@ namespace ed64usb
         public enum ReceiveCommand : byte
         {
             CommsReply = (byte)'r',
-            CommsReplyLegacy = (byte)'k', //TODO: tell users to update their OS!
+            //CommsReplyLegacy = (byte)'k', //TODO: tell users to update their old OS!
 
         }
 
@@ -39,7 +39,7 @@ namespace ed64usb
         /// <param name="filename">The file to be written to</param>
         public static void DumpScreenBuffer(string filename)
         {
-            short width = 320; //the menu only currently supports 320x240 resolution
+            short width = 320; //the OS menu only currently supports 320x240 resolution
             short height = 240;
 
             byte[] data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM
