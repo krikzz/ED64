@@ -118,19 +118,20 @@ namespace ed64usb
                         List<byte> romBytes = new List<byte>();
                         uint baseAddress = ROM_BASE_ADDRESS;
 
-                        var header = br.ReadUInt32();
-                        br.BaseStream.Position = 0; //reset the stream position for when we need to read the full ROM.
+                        // We cannot rely on the filename for the format to be correct, so it is best to check the first 4 bytes of the ROM
+                        var header = br.ReadUInt32(); // Reading the the bytes as a UInt32 simplifies the code below, but at the expense of changing the byte format.
+                        br.BaseStream.Position = 0; // Reset the stream position for when we need to read the full ROM.
 
                         switch (header)
                         {
-                            case 0x40123780: //Z64 (if reading the bytes in order, it would be 0x80371240)
-                                Console.WriteLine("Rom format (Native).");
-                                //No Conversion necessary, just load the file.
+                            case 0x40123780: // BigEndian - Native (if reading the bytes in order, it would be 0x80371240)
+                                Console.WriteLine("Rom format (BigEndian - Native).");
+                                // No Conversion necessary, just load the file.
                                 romBytes.AddRange(br.ReadBytes((int)fs.Length));
                                 break;
-                            case 0x12408037: //V64 or N64 NoIntro (if reading the bytes in order, it would be 0x37804012)
+                            case 0x12408037: //Byte Swapped (if reading the bytes in order, it would be 0x37804012)
                                 Console.WriteLine("Rom format (Byte Swapped).");
-                                //ROM is V64 type and we need to byteswap
+                                // Swap each 2 bytes to make it Big Endian
                                 {
                                     byte[] chunk;
                                     chunk = br.ReadBytes(2).Reverse().ToArray();
@@ -145,9 +146,9 @@ namespace ed64usb
                                 }
                                 break;
 
-                            case 0x80371240: //N64 (if reading the bytes in order, it would be 0x40123780) //TODO: check case actually works!
-                                //ROM is N64 type and we need to reverse bytes in blocks of 4
+                            case 0x80371240: // Little Endian (if reading the bytes in order, it would be 0x40123780)
                                 Console.WriteLine("Rom format (Little Endian).");
+                                // Reverse each 4 bytes to make it Big Endian
                                 {
                                     byte[] chunk;
                                     chunk = br.ReadBytes(4).Reverse().ToArray();
@@ -163,7 +164,7 @@ namespace ed64usb
                                 break;
 
                             default:
-                                Console.WriteLine($"Unrecognised Rom Format: {header.ToString("X2")}, presuming emulator ROM.");
+                                Console.WriteLine("Unrecognised Rom Format: {0:X}, presuming emulator ROM.", header);
                                 baseAddress += 0x200000;
                                 break;
                         }
@@ -229,7 +230,7 @@ namespace ed64usb
         /// <param name="data">The data to write</param>
         /// <param name="startAddress">The start address</param>
         /// <returns></returns>
-        public static byte[] RomWrite(byte[] data, uint startAddress, bool littleEndian = true)
+        public static byte[] RomWrite(byte[] data, uint startAddress)
         {
 
             int length = data.Length;
