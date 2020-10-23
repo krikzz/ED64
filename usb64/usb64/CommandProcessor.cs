@@ -113,58 +113,59 @@ namespace ed64usb
             {
                 using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
                 {
-
                     using (BinaryReader br = new BinaryReader(fs))
                     {
-                        byte[] header = br.ReadBytes(4); //TODO: read an int, then we can use a case statement
-                        br.BaseStream.Position = 0; //reset the stream position for when we need to read the full ROM.
                         List<byte> romBytes = new List<byte>();
                         uint baseAddress = ROM_BASE_ADDRESS;
 
-                        //check the file header matches a valid N64 ROM.
-                        if (header[0] == 0x80 && header[1] == 0x37 && header[2] == 0x12 && header[3] == 0x40) //Z64
+                        var header = br.ReadUInt32();
+                        br.BaseStream.Position = 0; //reset the stream position for when we need to read the full ROM.
+
+                        switch (header)
                         {
-                            Console.WriteLine("Rom format (Z64).");
-                            //No Conversion necessary, just load the file.
-                            romBytes.AddRange(br.ReadBytes((int)fs.Length));
+                            case 0x40123780: //Z64 (if reading the bytes in order, it would be 0x80371240)
+                                Console.WriteLine("Rom format (Native).");
+                                //No Conversion necessary, just load the file.
+                                romBytes.AddRange(br.ReadBytes((int)fs.Length));
+                                break;
+                            case 0x12408037: //V64 or N64 NoIntro (if reading the bytes in order, it would be 0x37804012)
+                                Console.WriteLine("Rom format (Byte Swapped).");
+                                //ROM is V64 type and we need to byteswap
+                                {
+                                    byte[] chunk;
+                                    chunk = br.ReadBytes(2).Reverse().ToArray();
 
-                        }
-                        else if (header[0] == 0x37 && header[1] == 0x80 && header[2] == 0x40 && header[3] == 0x12) //V64
-                        {
-                            Console.WriteLine("Rom format (V64).");
-                            //ROM is V64 type and we need to byteswap
-                            byte[] chunk;
-                            chunk = br.ReadBytes(2).Reverse().ToArray();
+                                    while (chunk.Length > 0)
+                                    {
+                                        romBytes.AddRange(chunk);
+                                        chunk = br.ReadBytes(2).Reverse().ToArray();
+                                    }
 
-                            while (chunk.Length > 0)
-                            {
-                                romBytes.AddRange(chunk);
-                                chunk = br.ReadBytes(2).Reverse().ToArray();
-                            }
+                                    romBytes.AddRange(chunk);
+                                }
+                                break;
 
-                            romBytes.AddRange(chunk);
+                            case 0x80371240: //N64 (if reading the bytes in order, it would be 0x40123780) //TODO: check case actually works!
+                                //ROM is N64 type and we need to reverse bytes in blocks of 4
+                                Console.WriteLine("Rom format (Little Endian).");
+                                {
+                                    byte[] chunk;
+                                    chunk = br.ReadBytes(4).Reverse().ToArray();
 
-                        }
-                        else if (header[0] == 0x40 && header[1] == 0x12 && header[2] == 0x37 && header[3] == 0x80) //N64
-                        {
-                            //ROM is N64 type and we need to reverse bytes in blocks of 4
-                            Console.WriteLine("Rom format (n64).");
+                                    while (chunk.Length > 0)
+                                    {
+                                        romBytes.AddRange(chunk);
+                                        chunk = br.ReadBytes(4).Reverse().ToArray();
+                                    }
 
-                            byte[] chunk;
-                            chunk = br.ReadBytes(4).Reverse().ToArray();
+                                    romBytes.AddRange(chunk);
+                                }
+                                break;
 
-                            while (chunk.Length > 0)
-                            {
-                                romBytes.AddRange(chunk);
-                                chunk = br.ReadBytes(4).Reverse().ToArray();
-                            }
-
-                            romBytes.AddRange(chunk);
-
-                        }
-                        else //Presume it is an emulator ROM
-                        {
-                            baseAddress += 0x200000;
+                            default:
+                                Console.WriteLine($"Unrecognised Rom Format: {header.ToString("X2")}, presuming emulator ROM.");
+                                baseAddress += 0x200000;
+                                break;
                         }
 
                         uint fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
