@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace ed64usb
@@ -53,7 +55,7 @@ namespace ed64usb
         /// <param name="filename">The filename</param>
         public static void DumpRom(string filename)
         {
-            byte[] data = RomRead(ROM_BASE_ADDRESS, 0x101000);
+            byte[] data = RomRead(ROM_BASE_ADDRESS, 0x101000); //1052672 bytes (just over 1MB) what about larger ROMs?
             File.WriteAllBytes(filename, data);
 
         }
@@ -106,41 +108,74 @@ namespace ed64usb
         /// <param name="filename">The filename to load</param>
         public static void LoadRom(string filename)
         {
-            byte[] data = File.ReadAllBytes(filename);
-            bool isEmulatorROM;
-
-            //TODO: switch statement!
-            //check the file header matches a valid N64 ROM.
-            if (data[0] == 0x80 && data[1] == 0x37 && data[2] == 0x12 && data[3] == 0x40) //Z64
+            if (File.Exists(filename))
             {
-                Console.WriteLine("Rom format (Z64).");
-                //No Conversion necessary.
-                isEmulatorROM = false;
-            }
-            else if (data[1] == 0x80 && data[0] == 0x37 && data[2] == 0x40 && data[3] == 0x12) //V64
-            {
-                Console.WriteLine("Rom format (V64).");
-                //No Conversion necessary.
-                isEmulatorROM = false;
-            }
-            else if (data[0] == 0x40 && data[1] == 0x12 && data[2] == 0x37 && data[3] == 0x80) //N64
-            {
-                //ROM is N64 type and we need to byteswap
-                Console.WriteLine("Rom format (n64) is probably unsupported!"); //TODO: convert!
+                using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                {
 
-                isEmulatorROM = false;
-            }
-            else
-            {
-                isEmulatorROM = true;
-            }
+                    using (BinaryReader br = new BinaryReader(fs))
+                    {
+                        byte[] header = new byte[4];
+                        header = br.ReadBytes(4);
+                        br.BaseStream.Position = 0; //reset the position for when we need to read the full ROM.
+                        List<byte> romBytes = new List<byte>();
+                        bool isEmulatorROM = false;
 
-            uint fillValue = IsBootLoader(data) ? 0xffffffff : 0;
-            uint baseAddress = ROM_BASE_ADDRESS;
-            if (isEmulatorROM) baseAddress += 0x200000;
+                        //check the file header matches a valid N64 ROM.
+                        if (header[0] == 0x80 && header[1] == 0x37 && header[2] == 0x12 && header[3] == 0x40) //Z64
+                        {
+                            Console.WriteLine("Rom format (Z64).");
+                            //No Conversion necessary, just load the file.
+                            romBytes.AddRange(br.ReadBytes((int)fs.Length));
 
-            FormatRomMemory(data.Length, fillValue);
-            RomWrite(data, baseAddress);
+                        }
+                        else if (header[0] == 0x37 && header[1] == 0x80 && header[2] == 0x40 && header[3] == 0x12) //V64
+                        {
+                            Console.WriteLine("Rom format (V64).");
+                            //ROM is V64 type and we need to byteswap
+                            byte[] chunk;
+                            chunk = br.ReadBytes(2).Reverse().ToArray();
+
+                            while (chunk.Length > 0)
+                            {
+                                romBytes.AddRange(chunk);
+                                chunk = br.ReadBytes(2).Reverse().ToArray();
+                            }
+
+                            romBytes.AddRange(chunk);
+
+                        }
+                        else if (header[0] == 0x40 && header[1] == 0x12 && header[2] == 0x37 && header[3] == 0x80) //N64
+                        {
+                            //ROM is N64 type and we need to reverse bytes in blocks of 4
+                            Console.WriteLine("Rom format (n64).");
+
+                            byte[] chunk;
+                            chunk = br.ReadBytes(4).Reverse().ToArray();
+
+                            while (chunk.Length > 0)
+                            {
+                                romBytes.AddRange(chunk);
+                                chunk = br.ReadBytes(4).Reverse().ToArray();
+                            }
+
+                            romBytes.AddRange(chunk);
+
+                        }
+                        else
+                        {
+                            isEmulatorROM = true;
+                        }
+
+                        uint fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
+                        uint baseAddress = ROM_BASE_ADDRESS;
+                        if (isEmulatorROM) baseAddress += 0x200000;
+
+                        FormatRomMemory(romBytes.ToArray().Length, fillValue);
+                        RomWrite(romBytes.ToArray(), baseAddress);
+                    }
+                }
+            }
         }
 
 
@@ -287,28 +322,33 @@ namespace ed64usb
         private static void UsbCmdTransmit(CommandProcessor.TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
 
-            byte[] cmd = new byte[16];
+            byte[] cmd = new byte[16];  // new List<byte>();
             length /= 512;
 
+            //cmd.AddRange(Encoding.ASCII.GetBytes("cmd"));
             cmd[0] = (byte)'c';
             cmd[1] = (byte)'m';
             cmd[2] = (byte)'d';
             cmd[3] = (byte)commandType;
-            //TODO: any implications from linux for below?
+            //cmd.Add((byte)commandType);
+
             cmd[4] = (byte)(address >> 24);
             cmd[5] = (byte)(address >> 16);
             cmd[6] = (byte)(address >> 8);
             cmd[7] = (byte)(address >> 0);
+            //cmd.AddRange(BitConverter.GetBytes(address).Reverse());
 
             cmd[8] = (byte)(length >> 24);
             cmd[9] = (byte)(length >> 16);
             cmd[10] = (byte)(length >> 8);
             cmd[11] = (byte)(length >> 0);
+            //cmd.AddRange(BitConverter.GetBytes(length).Reverse());
 
             cmd[12] = (byte)(argument >> 24);
             cmd[13] = (byte)(argument >> 16);
             cmd[14] = (byte)(argument >> 8);
             cmd[15] = (byte)(argument >> 0);
+            //cmd.AddRange(BitConverter.GetBytes(argument).Reverse());
 
             UsbInterface.port.Write(cmd, 0, cmd.Length); //TODO: any implications if we switch to UsbInterface.Write()???
         }
@@ -333,11 +373,11 @@ namespace ed64usb
 
 
 
-        private static string GetSpeedString(long len, long time)
+        private static string GetSpeedString(long length, long time)
         {
             time /= 10000;
             if (time == 0) time = 1;
-            long speed = ((len / 1024) * 1000) / time;
+            long speed = ((length / 1024) * 1000) / time;
 
             return ($"{speed} KB/s");
 
