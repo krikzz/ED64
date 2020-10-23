@@ -28,7 +28,8 @@ namespace ed64usb
 
         public enum ReceiveCommand : byte
         {
-            CommsReply = (byte)'r'
+            CommsReply = (byte)'r',
+            CommsReplyLegacy = (byte)'k', //TODO: tell users to update their OS!
 
         }
 
@@ -182,11 +183,6 @@ namespace ed64usb
         public static void DebugCommand()
         {
             Console.WriteLine("Debug capabilities not implemented yet...!");
-            //EnterDebugMode();
-            //char[] data = { 'D', 'M', 'A', '@' };
-            //var baseAddress = ROM_BASE_ADDRESS;
-            //baseAddress += 0x3F00000;
-            ////RomWrite(Encoding.ASCII.GetBytes(data), baseAddress);
         }
 
 
@@ -258,18 +254,20 @@ namespace ed64usb
         /// <param name="fileName">The filename</param>
         public static void StartRom(string fileName)
         {
-            
-            if (fileName.Length >= 256)
+
+            if (fileName.Length < 256)
             {
+                byte[] filenameBytes = Encoding.ASCII.GetBytes(fileName);
+                Array.Resize(ref filenameBytes, 256); //The packet must be 256 bytes in length, so resize it.
+
+                UsbCmdTransmit(CommandProcessor.TransmitCommand.RomStart, 0, 0, 1);
+                UsbInterface.Write(filenameBytes);
+            }
+            else
+            { 
                 throw new Exception("Filename exceeds the 256 character limit.");
             }
-            byte[] fname_bytes = Encoding.ASCII.GetBytes(fileName);
-            byte[] buff = new byte[256];
-            Array.Copy(fname_bytes, 0, buff, 0, fname_bytes.Length); //TODO: why do we need to go around the house here? (copying something that is already an array, except perhaps it needs to be fixed to 256?!
 
-            UsbCmdTransmit(CommandProcessor.TransmitCommand.RomStart, 0, 0, 1);
-
-            UsbInterface.Write(buff);
         }
 
 

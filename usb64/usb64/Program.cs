@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using System.Reflection;
+using System.IO;
 
 namespace ed64usb
 {
@@ -89,7 +90,7 @@ namespace ed64usb
         private static void HandleArguments(string[] args)
         {
 
-            var romName = string.Empty;
+            var romFilePath = string.Empty;
             var startRom = false;
             var debugRom = false;
 
@@ -123,8 +124,8 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-rom"):
                             Console.Write("Writing ROM...");
-                            romName = ExtractSubArg(arg);
-                            CommandProcessor.LoadRom(romName);
+                            romFilePath = ExtractSubArg(arg);
+                            CommandProcessor.LoadRom(romFilePath);
                             break;
 
                         case string x when x.StartsWith("-start"):
@@ -184,9 +185,9 @@ namespace ed64usb
 
                 if (startRom)
                 {
-                    if (romName != string.Empty)
+                    if (romFilePath != string.Empty)
                     {
-                        CommandProcessor.StartRom(romName);
+                        CommandProcessor.StartRom(Path.GetFileName(romFilePath));
                     }
                 }
             }
