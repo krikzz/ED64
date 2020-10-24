@@ -14,7 +14,7 @@ namespace ed64usb
 
         private enum TransmitCommand : byte
         {
-            FormatRomMemory = (byte)'c', //char format 'c' artridge memory?
+            RomFillCartridgeSpace = (byte)'c', //char ROM fill 'c' artridge space
             RomRead = (byte)'R', //char ROM 'R' ead
             RomWrite = (byte)'W', // char ROM 'W' rite
             RomStart = (byte)'s', //char ROM 's' tart
@@ -171,7 +171,7 @@ namespace ed64usb
 
                         uint fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
                         
-                        FormatRomMemory(romBytes.ToArray().Length, fillValue);
+                        FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
                         RomWrite(romBytes.ToArray(), baseAddress);
                     }
                 }
@@ -270,13 +270,13 @@ namespace ed64usb
         }
 
 
-        private static void FormatRomMemory(int romLength, uint value)
+        private static void FillCartridgeRomSpace(int romLength, uint value)
         {
             int crcArea = 0x100000 + 4096;
             if (romLength >= crcArea) return;
 
             Console.Write("Filling memory...");
-            CommandPacketTransmit(TransmitCommand.FormatRomMemory, ROM_BASE_ADDRESS, crcArea, value);
+            CommandPacketTransmit(TransmitCommand.RomFillCartridgeSpace, ROM_BASE_ADDRESS, crcArea, value);
             TestCommunication();
             Console.WriteLine("ok");
 
@@ -302,11 +302,6 @@ namespace ed64usb
 
             return bootloader;
         }
-
-
-        // *************************** ED64 USB commands ***************************
-
-
 
 
         /// <summary>
