@@ -9,8 +9,8 @@ namespace ed64usb
     public static class CommandProcessor
     {
 
-        public const uint ROM_BASE_ADDRESS = 0x10000000;
-        public const uint RAM_BASE_ADDRESS = 0x80000000;
+        public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series
+        public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series
 
         private enum TransmitCommand : byte
         {
@@ -92,10 +92,10 @@ namespace ed64usb
             byte[] data = File.ReadAllBytes(filename);
 
             data = FixDataSize(data);
-            UsbCmdTransmit(TransmitCommand.FpgaWrite, 0, data.Length, 0);
+            CommandPacketTransmit(TransmitCommand.FpgaWrite, 0, data.Length, 0);
 
             UsbInterface.Write(data);
-            byte[] responseBytes = UsbCmdReceive(ReceiveCommand.CommsReply);
+            byte[] responseBytes = CommandPacketReceive(ReceiveCommand.CommsReply);
             if (responseBytes[4] != 0)
             {
                 throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { responseBytes[4] })}");
@@ -194,7 +194,7 @@ namespace ed64usb
         public static byte[] RomRead(uint startAddress, int length)
         {
 
-            UsbCmdTransmit(TransmitCommand.RomRead, startAddress, length, 0);
+            CommandPacketTransmit(TransmitCommand.RomRead, startAddress, length, 0);
 
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
@@ -213,7 +213,7 @@ namespace ed64usb
         public static byte[] RamRead(uint startAddress, int length)
         {
 
-            UsbCmdTransmit(TransmitCommand.RamRead, startAddress, length, 0);
+            CommandPacketTransmit(TransmitCommand.RamRead, startAddress, length, 0);
 
             Console.Write("Reading RAM...");
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
@@ -235,7 +235,7 @@ namespace ed64usb
 
             int length = data.Length;
 
-            UsbCmdTransmit(TransmitCommand.RomWrite, startAddress, length, 0);
+            CommandPacketTransmit(TransmitCommand.RomWrite, startAddress, length, 0);
 
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
             long time = DateTime.Now.Ticks;
@@ -259,7 +259,7 @@ namespace ed64usb
                 byte[] filenameBytes = Encoding.ASCII.GetBytes(fileName);
                 Array.Resize(ref filenameBytes, 256); //The packet must be 256 bytes in length, so resize it.
 
-                UsbCmdTransmit(TransmitCommand.RomStart, 0, 0, 1);
+                CommandPacketTransmit(TransmitCommand.RomStart, 0, 0, 1);
                 UsbInterface.Write(filenameBytes);
             }
             else
@@ -276,7 +276,7 @@ namespace ed64usb
             if (romLength >= crcArea) return;
 
             Console.Write("Filling memory...");
-            UsbCmdTransmit(TransmitCommand.FormatRomMemory, ROM_BASE_ADDRESS, crcArea, value);
+            CommandPacketTransmit(TransmitCommand.FormatRomMemory, ROM_BASE_ADDRESS, crcArea, value);
             TestCommunication();
             Console.WriteLine("ok");
 
@@ -287,8 +287,8 @@ namespace ed64usb
         /// </summary>
         public static void TestCommunication()
         {
-            UsbCmdTransmit(TransmitCommand.TestConnection);
-            UsbCmdReceive(ReceiveCommand.CommsReply);
+            CommandPacketTransmit(TransmitCommand.TestConnection);
+            CommandPacketReceive(ReceiveCommand.CommsReply);
         }
 
         private static bool IsBootLoader(byte[] data)
@@ -316,7 +316,7 @@ namespace ed64usb
         /// <param name="address">Optional</param>
         /// <param name="length">Optional </param>
         /// <param name="argument">Optional</param>
-        private static void UsbCmdTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
+        private static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
 
             byte[] cmd = new byte[16];
@@ -366,7 +366,7 @@ namespace ed64usb
         /// </summary>
         /// <param name="responseType">the response type to validate</param>
         /// <returns>the full response in bytes</returns>
-        private static byte[] UsbCmdReceive(ReceiveCommand receiveCommand)
+        private static byte[] CommandPacketReceive(ReceiveCommand receiveCommand)
         {
 
             byte[] cmd = UsbInterface.Read(16);
@@ -393,12 +393,18 @@ namespace ed64usb
 
         private static byte[] FixDataSize(byte[] data)
         {
-            if (data.Length % 512 == 0) return data;
-            byte[] buff = new byte[data.Length / 512 * 512 + 512];
-            for (int i = buff.Length - 512; i < buff.Length; i++) buff[i] = 0xff;
-            Array.Copy(data, 0, buff, 0, data.Length);
+            if (data.Length % 512 != 0)
+            {
+                byte[] buff = new byte[data.Length / 512 * 512 + 512];
+                for (int i = buff.Length - 512; i < buff.Length; i++) buff[i] = 0xff;
+                Array.Copy(data, 0, buff, 0, data.Length);
 
-            return buff;
+                return buff;
+            }
+            else
+            {
+                return data;
+            }
         }
     }
 }
