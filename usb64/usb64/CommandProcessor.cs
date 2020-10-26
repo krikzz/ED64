@@ -11,6 +11,7 @@ namespace ed64usb
 
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series
+        public const string MINIMUM_OS_VERSION = "3.05";
 
         private enum TransmitCommand : byte
         {
@@ -29,7 +30,7 @@ namespace ed64usb
         public enum ReceiveCommand : byte
         {
             CommsReply = (byte)'r',
-            //CommsReplyLegacy = (byte)'k', //TODO: tell users to update their old OS!
+            CommsReplyLegacy = (byte)'k',
 
         }
 
@@ -39,15 +40,19 @@ namespace ed64usb
         /// <param name="filename">The file to be written to</param>
         public static void DumpScreenBuffer(string filename)
         {
-            short width = 320; //the OS menu only currently supports 320x240 resolution
+            short width = 320; //TODO: the OS menu only currently supports 320x240 resolution, but should be read from the appropriate RAM register for forward compatibility! 
             short height = 240;
 
-            byte[] data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM
-            int address = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3]; //convert endian (TODO: is there a better way?)
+            byte[] data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM (requires reading the whole 512 byte buffer, otherwise USB comms will fail)
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(data, 0, 4); //convert endian (we only need the first 4 bytes)
+            }
+            int framebufferAddress = BitConverter.ToInt32(data, 0);
             int length = width * height * 2;
 
-            data = RamRead((uint)(RAM_BASE_ADDRESS | address), length); // Get the framebuffer data from cartridge RAM
-            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));
+            data = RamRead((uint)(RAM_BASE_ADDRESS | framebufferAddress), length); // Get the framebuffer data from cartridge RAM
+            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));       
         }
 
         /// <summary>
@@ -95,7 +100,7 @@ namespace ed64usb
             CommandPacketTransmit(TransmitCommand.FpgaWrite, 0, data.Length, 0);
 
             UsbInterface.Write(data);
-            byte[] responseBytes = CommandPacketReceive(ReceiveCommand.CommsReply);
+            byte[] responseBytes = CommandPacketReceive();
             if (responseBytes[4] != 0)
             {
                 throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { responseBytes[4] })}");
@@ -191,7 +196,7 @@ namespace ed64usb
         /// <param name="startAddress">The start address</param>
         /// <param name="length">The length to read</param>
         /// <returns></returns>
-        public static byte[] RomRead(uint startAddress, int length)
+        private static byte[] RomRead(uint startAddress, int length)
         {
 
             CommandPacketTransmit(TransmitCommand.RomRead, startAddress, length, 0);
@@ -210,7 +215,7 @@ namespace ed64usb
         /// <param name="startAddress">The start address</param>
         /// <param name="length">The length to read</param>
         /// <returns></returns>
-        public static byte[] RamRead(uint startAddress, int length)
+        private static byte[] RamRead(uint startAddress, int length)
         {
 
             CommandPacketTransmit(TransmitCommand.RamRead, startAddress, length, 0);
@@ -230,7 +235,7 @@ namespace ed64usb
         /// <param name="data">The data to write</param>
         /// <param name="startAddress">The start address</param>
         /// <returns></returns>
-        public static byte[] RomWrite(byte[] data, uint startAddress)
+        private static byte[] RomWrite(byte[] data, uint startAddress)
         {
 
             int length = data.Length;
@@ -288,7 +293,7 @@ namespace ed64usb
         public static void TestCommunication()
         {
             CommandPacketTransmit(TransmitCommand.TestConnection);
-            CommandPacketReceive(ReceiveCommand.CommsReply);
+            CommandPacketReceive();
         }
 
         private static bool IsBootLoader(byte[] data)
@@ -359,19 +364,30 @@ namespace ed64usb
         /// <summary>
         /// Receives a command response from the USB port
         /// </summary>
-        /// <param name="responseType">the response type to validate</param>
         /// <returns>the full response in bytes</returns>
-        private static byte[] CommandPacketReceive(ReceiveCommand receiveCommand)
+        private static byte[] CommandPacketReceive()
         {
 
             byte[] cmd = UsbInterface.Read(16);
-            if (cmd[0] != 'c') throw new Exception("Corrupted response.");
-            if (cmd[1] != 'm') throw new Exception("Corrupted response.");
-            if (cmd[2] != 'd') throw new Exception("Corrupted response.");
-            if (cmd[3] != (byte)receiveCommand) throw new Exception("Unexpected response.");
-
-            return cmd;
-
+            if (Encoding.ASCII.GetString(cmd).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(cmd).ToLower().StartsWith("RSP"))
+            {
+                switch ((ReceiveCommand)cmd[3])
+                {
+                    case ReceiveCommand.CommsReply:
+                        return cmd;
+                        //break;
+                    case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
+                        throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
+                        //break;
+                    default:
+                        throw new Exception("Unexpected response received from USB port.");
+                        //break;
+                }
+            }
+            else
+            {
+                throw new Exception("Corrupted response received from USB port.");
+            }
         }
 
 

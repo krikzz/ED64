@@ -7,8 +7,8 @@ namespace ed64usb
     {
 
         private static SerialPort port;
-        public static int ProgressBarTimerInterval = 0;
-        public static int ProgressBarTimerCounter = 0;
+        public static int ProgressBarTimerInterval { get; set; }
+        public static int ProgressBarTimerCounter { get; set; }
 
 
         public static void Read(byte[] data, int offset, int length)
