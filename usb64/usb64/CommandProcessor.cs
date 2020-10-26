@@ -9,8 +9,8 @@ namespace ed64usb
     public static class CommandProcessor
     {
 
-        public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series
-        public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series
+        public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
+        public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
         public const string MINIMUM_OS_VERSION = "3.05";
 
         private enum TransmitCommand : byte
@@ -40,6 +40,8 @@ namespace ed64usb
         /// <param name="filename">The file to be written to</param>
         public static void DumpScreenBuffer(string filename)
         {
+            //TODO: the OS menu only currently supports 320x240 resolution, but should be read from the appropriate RAM register for forward compatibility! 
+            // See https://n64brew.dev/wiki/Video_Interface for how this possibily could be improved.
             short width = 320; //TODO: the OS menu only currently supports 320x240 resolution, but should be read from the appropriate RAM register for forward compatibility! 
             short height = 240;
 
@@ -71,16 +73,16 @@ namespace ed64usb
         /// </summary>
         public static void RunDiagnostics()
         {
-            byte[] writeBuffer = new byte[0x100000];
+            byte[] writeBuffer = new byte[0x100000]; //create a 8MB array
             byte[] readBuffer;
 
-            for (int i = 0; i < 0x800000; i += writeBuffer.Length)
+            for (int i = 0; i < 0x800000; i += writeBuffer.Length) //for each 8MB in an 64MB range
             {
-                new Random().NextBytes(writeBuffer);
+                new Random().NextBytes(writeBuffer); //randomly fill the 8MB array
                 RomWrite(writeBuffer, ROM_BASE_ADDRESS);
                 readBuffer = RomRead(ROM_BASE_ADDRESS, writeBuffer.Length);
 
-                for (int u = 0; u < writeBuffer.Length; u++)
+                for (int u = 0; u < writeBuffer.Length; u++) //ensure that the bytes set match the bytes received.
                 {
                     if (writeBuffer[u] != readBuffer[u]) throw new Exception("USB diagnostics error: " + (i + u));
                 }
@@ -319,46 +321,26 @@ namespace ed64usb
         /// <param name="argument">Optional</param>
         private static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
+            length /= 512; //Must take into account buffer size.
 
-            var cmd = new byte[16];
-            length /= 512;
+            var commandPacket = new List<byte>();
 
-            cmd[0] = (byte)'c';
-            cmd[1] = (byte)'m';
-            cmd[2] = (byte)'d';
-            cmd[3] = (byte)commandType;
+            commandPacket.AddRange(Encoding.ASCII.GetBytes("cmd"));
+            commandPacket.Add((byte)commandType);
+            if (BitConverter.IsLittleEndian)
+            { //Convert to Big Endian
+                commandPacket.AddRange(BitConverter.GetBytes(address).Reverse());
+                commandPacket.AddRange(BitConverter.GetBytes(length).Reverse());
+                commandPacket.AddRange(BitConverter.GetBytes(argument).Reverse());
+            }
+            else
+            {
+                commandPacket.AddRange(BitConverter.GetBytes(address));
+                commandPacket.AddRange(BitConverter.GetBytes(length));
+                commandPacket.AddRange(BitConverter.GetBytes(argument));
+            }
 
-            cmd[4] = (byte)(address >> 24);
-            cmd[5] = (byte)(address >> 16);
-            cmd[6] = (byte)(address >> 8);
-            cmd[7] = (byte)(address >> 0);
-
-            cmd[8] = (byte)(length >> 24);
-            cmd[9] = (byte)(length >> 16);
-            cmd[10] = (byte)(length >> 8);
-            cmd[11] = (byte)(length >> 0);
-
-            cmd[12] = (byte)(argument >> 24);
-            cmd[13] = (byte)(argument >> 16);
-            cmd[14] = (byte)(argument >> 8);
-            cmd[15] = (byte)(argument >> 0);
-
-            //Console.WriteLine($"bitwise Command {BitConverter.ToString(cmd)}");
-
-            UsbInterface.Write(cmd);
-
-            // TODO: there is no reason why the below doesn't work, however it generally times out.
-            //var commandPacket = new List<byte>();
-
-            //commandPacket.AddRange(Encoding.ASCII.GetBytes("cmd"));
-            //commandPacket.Add((byte)commandType);
-            //commandPacket.AddRange(BitConverter.GetBytes(address).Reverse()); //Big Endian
-            //commandPacket.AddRange(BitConverter.GetBytes(length).Reverse()); //Big Endian
-            //commandPacket.AddRange(BitConverter.GetBytes(argument).Reverse()); //Big Endian
-            //Console.WriteLine($"List Command {BitConverter.ToString(commandPacket.ToArray())}");
-
-            //UsbInterface.Write(commandPacket.ToArray());
-
+            UsbInterface.Write(commandPacket.ToArray());
 
         }
 
