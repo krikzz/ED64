@@ -96,7 +96,7 @@ namespace ed64usb
             var romFilePath = string.Empty;
             var startFileName = string.Empty;
             var startRom = false;
-            var debugRom = false;
+            //var debugRom = false;
 
             long time = DateTime.Now.Ticks;
 
@@ -167,9 +167,9 @@ namespace ed64usb
                             CommandProcessor.DumpScreenBuffer(ExtractSubArg(arg));
                             break;
 
-                        case string x when x.StartsWith("-debug"):
-                            debugRom = true;
-                            break;
+                        //case string x when x.StartsWith("-debug"):
+                        //    debugRom = true;
+                        //    break;
 
                         default:
                             if (arg.StartsWith("-"))
@@ -188,10 +188,10 @@ namespace ed64usb
                     }
                 }
 
-                if (debugRom)
-                {
-                    CommandProcessor.DebugCommand();
-                }
+                //if (debugRom)
+                //{
+                //    CommandProcessor.DebugCommand();
+                //}
 
                 if (startRom)
                 {

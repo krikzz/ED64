@@ -43,13 +43,13 @@ namespace ed64usb
             short width = 320; //TODO: the OS menu only currently supports 320x240 resolution, but should be read from the appropriate RAM register for forward compatibility! 
             short height = 240;
 
-            byte[] data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM (requires reading the whole 512 byte buffer, otherwise USB comms will fail)
+            var data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM (requires reading the whole 512 byte buffer, otherwise USB comms will fail)
             if (BitConverter.IsLittleEndian)
             {
                 Array.Reverse(data, 0, 4); //convert endian (we only need the first 4 bytes)
             }
-            int framebufferAddress = BitConverter.ToInt32(data, 0);
-            int length = width * height * 2;
+            var framebufferAddress = BitConverter.ToInt32(data, 0);
+            var length = width * height * 2;
 
             data = RamRead((uint)(RAM_BASE_ADDRESS | framebufferAddress), length); // Get the framebuffer data from cartridge RAM
             File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));       
@@ -61,7 +61,7 @@ namespace ed64usb
         /// <param name="filename">The filename</param>
         public static void DumpRom(string filename)
         {
-            byte[] data = RomRead(ROM_BASE_ADDRESS, 0x101000); //1052672 bytes (just over 1MB) what about larger ROMs?
+            var data = RomRead(ROM_BASE_ADDRESS, 0x101000); //TODO: 1052672 bytes (just over 1MB) what about larger ROMs?
             File.WriteAllBytes(filename, data);
 
         }
@@ -94,13 +94,13 @@ namespace ed64usb
         /// <returns></returns>
         public static bool LoadFpga(string filename)
         {
-            byte[] data = File.ReadAllBytes(filename);
+            var data = File.ReadAllBytes(filename);
 
             data = FixDataSize(data);
             CommandPacketTransmit(TransmitCommand.FpgaWrite, 0, data.Length, 0);
 
             UsbInterface.Write(data);
-            byte[] responseBytes = CommandPacketReceive();
+            var responseBytes = CommandPacketReceive();
             if (responseBytes[4] != 0)
             {
                 throw new Exception($"FPGA configuration error: 0x{BitConverter.ToString(new byte[] { responseBytes[4] })}");
@@ -120,8 +120,8 @@ namespace ed64usb
                 {
                     using (BinaryReader br = new BinaryReader(fs))
                     {
-                        List<byte> romBytes = new List<byte>();
-                        uint baseAddress = ROM_BASE_ADDRESS;
+                        var romBytes = new List<byte>();
+                        var baseAddress = ROM_BASE_ADDRESS;
 
                         // We cannot rely on the filename for the format to be correct, so it is best to check the first 4 bytes of the ROM
                         var header = br.ReadUInt32(); // Reading the the bytes as a UInt32 simplifies the code below, but at the expense of changing the byte format.
@@ -138,8 +138,7 @@ namespace ed64usb
                                 Console.WriteLine("Rom format (Byte Swapped).");
                                 // Swap each 2 bytes to make it Big Endian
                                 {
-                                    byte[] chunk;
-                                    chunk = br.ReadBytes(2).Reverse().ToArray();
+                                    var chunk = br.ReadBytes(2).Reverse().ToArray();
 
                                     while (chunk.Length > 0)
                                     {
@@ -155,8 +154,7 @@ namespace ed64usb
                                 Console.WriteLine("Rom format (Little Endian).");
                                 // Reverse each 4 bytes to make it Big Endian
                                 {
-                                    byte[] chunk;
-                                    chunk = br.ReadBytes(4).Reverse().ToArray();
+                                    var chunk = br.ReadBytes(4).Reverse().ToArray();
 
                                     while (chunk.Length > 0)
                                     {
@@ -174,7 +172,7 @@ namespace ed64usb
                                 break;
                         }
 
-                        uint fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
+                        var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
                         
                         FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
                         RomWrite(romBytes.ToArray(), baseAddress);
@@ -184,10 +182,10 @@ namespace ed64usb
         }
 
 
-        public static void DebugCommand()
-        {
-            Console.WriteLine("Debug capabilities not implemented yet...!");
-        }
+        //public static void DebugCommand()
+        //{
+        //    Console.WriteLine("Debug capabilities not implemented yet...!");
+        //}
 
 
         /// <summary>
@@ -202,8 +200,8 @@ namespace ed64usb
             CommandPacketTransmit(TransmitCommand.RomRead, startAddress, length, 0);
 
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
-            long time = DateTime.Now.Ticks;
-            byte[] data = UsbInterface.Read(length);
+            var time = DateTime.Now.Ticks;
+            var data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
@@ -222,8 +220,8 @@ namespace ed64usb
 
             Console.Write("Reading RAM...");
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
-            long time = DateTime.Now.Ticks;
-            byte[] data = UsbInterface.Read(length);
+            var time = DateTime.Now.Ticks;
+            var data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
@@ -238,12 +236,12 @@ namespace ed64usb
         private static byte[] RomWrite(byte[] data, uint startAddress)
         {
 
-            int length = data.Length;
+            var length = data.Length;
 
             CommandPacketTransmit(TransmitCommand.RomWrite, startAddress, length, 0);
 
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
-            long time = DateTime.Now.Ticks;
+            var time = DateTime.Now.Ticks;
             UsbInterface.Write(data);
             time = DateTime.Now.Ticks - time;
 
@@ -262,7 +260,7 @@ namespace ed64usb
 
             if (fileName.Length < 256)
             {
-                byte[] filenameBytes = Encoding.ASCII.GetBytes(fileName);
+                var filenameBytes = Encoding.ASCII.GetBytes(fileName);
                 Array.Resize(ref filenameBytes, 256); //The packet must be 256 bytes in length, so resize it.
 
                 CommandPacketTransmit(TransmitCommand.RomStart, 0, 0, 1);
@@ -278,13 +276,15 @@ namespace ed64usb
 
         private static void FillCartridgeRomSpace(int romLength, uint value)
         {
-            int crcArea = 0x100000 + 4096;
-            if (romLength >= crcArea) return;
+            var crcArea = 0x100000 + 4096;
+            if (romLength < crcArea)
+            {
 
-            Console.Write("Filling memory...");
-            CommandPacketTransmit(TransmitCommand.RomFillCartridgeSpace, ROM_BASE_ADDRESS, crcArea, value);
-            TestCommunication();
-            Console.WriteLine("ok");
+                Console.Write("Filling memory...");
+                CommandPacketTransmit(TransmitCommand.RomFillCartridgeSpace, ROM_BASE_ADDRESS, crcArea, value);
+                TestCommunication();
+                Console.WriteLine("ok");
+            }
 
         }
 
@@ -299,7 +299,7 @@ namespace ed64usb
 
         private static bool IsBootLoader(byte[] data)
         {
-            bool bootloader = true;
+            var bootloader = true;
             const string BOOT_MESSAGE = "EverDrive bootloader";
             for (int i = 0; i < BOOT_MESSAGE.ToCharArray().Length; i++)
             {
@@ -320,7 +320,7 @@ namespace ed64usb
         private static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
 
-            byte[] cmd = new byte[16];
+            var cmd = new byte[16];
             length /= 512;
 
             cmd[0] = (byte)'c';
@@ -369,20 +369,17 @@ namespace ed64usb
         private static byte[] CommandPacketReceive()
         {
 
-            byte[] cmd = UsbInterface.Read(16);
+            var cmd = UsbInterface.Read(16);
             if (Encoding.ASCII.GetString(cmd).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(cmd).ToLower().StartsWith("RSP"))
             {
                 switch ((ReceiveCommand)cmd[3])
                 {
                     case ReceiveCommand.CommsReply:
                         return cmd;
-                        //break;
                     case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
                         throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
-                        //break;
                     default:
                         throw new Exception("Unexpected response received from USB port.");
-                        //break;
                 }
             }
             else
@@ -397,7 +394,7 @@ namespace ed64usb
         {
             time /= 10000;
             if (time == 0) time = 1;
-            long speed = ((length / 1024) * 1000) / time;
+            var speed = ((length / 1024) * 1000) / time;
 
             return ($"{speed} KB/s");
 
@@ -407,8 +404,11 @@ namespace ed64usb
         {
             if (data.Length % 512 != 0)
             {
-                byte[] buff = new byte[data.Length / 512 * 512 + 512];
-                for (int i = buff.Length - 512; i < buff.Length; i++) buff[i] = 0xff;
+                var buff = new byte[data.Length / 512 * 512 + 512];
+                for (int i = buff.Length - 512; i < buff.Length; i++)
+                {
+                    buff[i] = 0xff;
+                }
                 Array.Copy(data, 0, buff, 0, data.Length);
 
                 return buff;
