@@ -84,9 +84,14 @@ namespace ed64usb
 
         }
 
+        /// <summary>
+        /// Finalizer
+        /// </summary>
         ~Program()
         {
-            UsbInterface.ClosePort();
+            // We should never get into this point. Getting here is an error of the developer!
+            //Console.WriteLine("Error - we forgot to dispose {0}", GetType().FullName);
+            UsbInterface.ClosePort(); //But just incase, ensure the serialport is closed, even when program crashes!
         }
 
 
@@ -98,7 +103,7 @@ namespace ed64usb
             var startRom = false;
             //var debugRom = false;
 
-            long time = DateTime.Now.Ticks;
+            var time = DateTime.Now.Ticks;
 
 
 
