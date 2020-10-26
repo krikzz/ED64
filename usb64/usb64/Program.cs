@@ -58,15 +58,14 @@ namespace ed64usb
 
         private static void Main(string[] args)
         {
-
-            DrawProgramHeader();
-
             try
             {
+                DrawProgramHeader();
+
                 UsbInterface.Connect();
                 HandleArguments(args);
 
-                DrawProgramFooter();
+                
 
             }
             catch (Exception exception)
@@ -76,8 +75,12 @@ namespace ed64usb
                 Console.WriteLine($"ERROR: {exception.Message}");
                 Console.ResetColor();
             }
+            finally
+            {
+                DrawProgramFooter();
 
-            UsbInterface.ClosePort();
+                UsbInterface.ClosePort();
+            }
 
         }
 
