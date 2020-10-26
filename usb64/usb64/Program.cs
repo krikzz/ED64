@@ -172,8 +172,8 @@ namespace ed64usb
                             else if (File.Exists(arg))
                             {
                                 Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start.");
-                                CommandProcessor.LoadRom(ExtractSubArg(arg));
-                                CommandProcessor.StartRom(Path.GetFileName(ExtractSubArg(arg)));
+                                CommandProcessor.LoadRom(arg);
+                                CommandProcessor.StartRom(Path.GetFileName(arg));
                             }
                             break;
                     }
