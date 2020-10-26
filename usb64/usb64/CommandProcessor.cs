@@ -183,13 +183,6 @@ namespace ed64usb
             }
         }
 
-
-        //public static void DebugCommand()
-        //{
-        //    Console.WriteLine("Debug capabilities not implemented yet...!");
-        //}
-
-
         /// <summary>
         /// Reads the Cartridge ROM
         /// </summary>

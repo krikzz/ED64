@@ -7,15 +7,6 @@ namespace ed64usb
 {
     internal class Program
     {
-
-        //public enum CartOsType
-        //{
-        //    V3_Official,
-        //    V3_Unofficial,
-        //    X7_Official,
-        //    Unknown
-        //}
-
         private static void DrawProgramHeader()
         {
             Console.OutputEncoding = Encoding.UTF8;
@@ -43,7 +34,6 @@ namespace ed64usb
             Console.WriteLine("-diag");
             Console.WriteLine("-drom=<filename>");
             Console.WriteLine("-screen=<filename>");
-            //Console.WriteLine("-debug");
             Console.WriteLine();
 
 
@@ -90,7 +80,7 @@ namespace ed64usb
         ~Program()
         {
             // We should never get into this point. Getting here is an error of the developer!
-            //Console.WriteLine("Error - we forgot to dispose {0}", GetType().FullName);
+            Console.WriteLine($"Error - {GetType().FullName} was not properly disposed!, Closing now...");
             UsbInterface.ClosePort(); //But just incase, ensure the serialport is closed, even when program crashes!
         }
 
@@ -101,7 +91,6 @@ namespace ed64usb
             var romFilePath = string.Empty;
             var startFileName = string.Empty;
             var startRom = false;
-            //var debugRom = false;
 
             var time = DateTime.Now.Ticks;
 
@@ -159,22 +148,10 @@ namespace ed64usb
                             CommandProcessor.DumpRom(ExtractSubArg(arg));
                             break;
 
-                        //case string x when x.StartsWith("-dram"):
-                        //    Console.Write("Reading RAM...");
-                        //    var startAddress = CommandProcessor.RAM_BASE_ADDRESS;
-                        //    var length = 512; //first chunk //TODO: we would need to handle more than just the first 512 bytes!
-                        //    CommandProcessor.RamRead(startAddress, length);
-                        //    File.WriteAllBytes(ExtractSubArg(arg));
-                        //    break;
-
                         case string x when x.StartsWith("-screen"):
                             Console.WriteLine("Reading Framebuffer.");
                             CommandProcessor.DumpScreenBuffer(ExtractSubArg(arg));
                             break;
-
-                        //case string x when x.StartsWith("-debug"):
-                        //    debugRom = true;
-                        //    break;
 
                         default:
                             if (arg.StartsWith("-"))
@@ -192,11 +169,6 @@ namespace ed64usb
                             break;
                     }
                 }
-
-                //if (debugRom)
-                //{
-                //    CommandProcessor.DebugCommand();
-                //}
 
                 if (startRom)
                 {
