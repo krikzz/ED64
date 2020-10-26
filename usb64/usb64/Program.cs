@@ -8,13 +8,13 @@ namespace ed64usb
     internal class Program
     {
 
-        public enum CartOsType
-        {
-            V3_Official,
-            V3_Unofficial,
-            X7_Official,
-            Unknown
-        }
+        //public enum CartOsType
+        //{
+        //    V3_Official,
+        //    V3_Unofficial,
+        //    X7_Official,
+        //    Unknown
+        //}
 
         private static void DrawProgramHeader()
         {
@@ -94,6 +94,7 @@ namespace ed64usb
         {
 
             var romFilePath = string.Empty;
+            var startFileName = string.Empty;
             var startRom = false;
             var debugRom = false;
 
@@ -105,7 +106,7 @@ namespace ed64usb
             {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine();
-                Console.WriteLine("No Valid arguments provided!");
+                Console.WriteLine("No valid arguments were provided!");
                 Console.ResetColor();
                 DrawProgramHelp();
             }
@@ -126,12 +127,17 @@ namespace ed64usb
                             break;
 
                         case string x when x.StartsWith("-rom"):
-                            Console.Write("Writing ROM...");
+                            Console.Write("Writing ROM, ");
                             romFilePath = ExtractSubArg(arg);
                             CommandProcessor.LoadRom(romFilePath);
                             break;
 
                         case string x when x.StartsWith("-start"):
+                            var filename = ExtractSubArg(arg, true);
+                            if ( !string.IsNullOrEmpty(filename))
+                            {
+                                startFileName = filename; //this allows specifying a save file of a different name to the loaded ROM.
+                            }
                             startRom = true; //args could be in any order... wait until we have handled all arguments first.
                             break;
 
@@ -174,7 +180,7 @@ namespace ed64usb
                             }
                             else if (File.Exists(arg))
                             {
-                                Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start.");
+                                Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start it.");
                                 CommandProcessor.LoadRom(arg);
                                 CommandProcessor.StartRom(Path.GetFileName(arg));
                             }
@@ -189,10 +195,19 @@ namespace ed64usb
 
                 if (startRom)
                 {
-                    if (romFilePath != string.Empty)
+                    if (!string.IsNullOrEmpty(startFileName))
+                    {
+                        CommandProcessor.StartRom(startFileName);
+                    }
+                    else if (!string.IsNullOrEmpty(romFilePath))
                     {
                         CommandProcessor.StartRom(Path.GetFileName(romFilePath));
                     }
+                    else
+                    {
+                        throw new Exception("Could not start ROM");
+                    }
+                    
                 }
             }
 
@@ -202,11 +217,11 @@ namespace ed64usb
 
         }
 
-        private static string ExtractSubArg(string arg, char delimiter = '=')
+        private static string ExtractSubArg(string arg, bool optional = false, char delimiter = '=')
         {
             var subArg = arg.Substring(arg.IndexOf(delimiter) + 1);
 
-            if (string.IsNullOrEmpty(subArg))
+            if (string.IsNullOrEmpty(subArg) && !optional)
             {
                 throw new Exception($"The {arg} argument is incomplete!");
             }

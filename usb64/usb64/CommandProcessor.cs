@@ -130,7 +130,7 @@ namespace ed64usb
                         switch (header)
                         {
                             case 0x40123780: // BigEndian - Native (if reading the bytes in order, it would be 0x80371240)
-                                Console.WriteLine("Rom format (BigEndian - Native).");
+                                Console.Write("Rom format (BigEndian - Native).");
                                 // No Conversion necessary, just load the file.
                                 romBytes.AddRange(br.ReadBytes((int)fs.Length));
                                 break;
@@ -255,8 +255,9 @@ namespace ed64usb
         /// <summary>
         /// Starts a ROM on the cartridge
         /// </summary>
-        /// <param name="fileName">The filename</param>
-        public static void StartRom(string fileName)
+        /// <param name="fileName">The filename (optional)</param>
+        /// <remarks> The filename (optional) is used for creating a save file on the SD card</remarks>
+        public static void StartRom(string fileName = "")
         {
 
             if (fileName.Length < 256)
