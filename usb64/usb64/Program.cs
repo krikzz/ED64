@@ -173,7 +173,7 @@ namespace ed64usb
                             {
                                 Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start.");
                                 CommandProcessor.LoadRom(ExtractSubArg(arg));
-                                CommandProcessor.StartRom(ExtractSubArg(arg));
+                                CommandProcessor.StartRom(Path.GetFileName(ExtractSubArg(arg)));
                             }
                             break;
                     }

@@ -16,9 +16,9 @@ namespace ed64usb
 
             while (length > 0)
             {
-                int block_size = 32768;
-                if (block_size > length) block_size = length;
-                int bytesread = port.Read(data, offset, block_size);
+                int blockSize = 32768;
+                if (blockSize > length) blockSize = length;
+                int bytesread = port.Read(data, offset, blockSize);
                 length -= bytesread;
                 offset += bytesread;
                 progressBarTimer_Update(bytesread);
