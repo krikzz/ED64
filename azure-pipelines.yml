@@ -103,29 +103,47 @@ jobs:
 
   pool:
     vmImage: 'windows-latest'
+
+  variables:
+    solution: '**/*.sln'
+    project: '**/*.csproj'
+    buildPlatform: 'Any CPU'
+    buildConfiguration: 'Release'
   
   steps:
 
-    - task: VSBuild@1
+    - task: NuGetCommand@2
       inputs:
-        solution: '**\*.sln' 
-        vsVersion: 'latest' # Optional. Options: latest, 16.0, 15.0, 14.0, 12.0, 11.0
-        #msbuildArgs: # Optional
-        #platform: # Optional
-        configuration: 'release'
-        #clean: false # Optional
-        #maximumCpuCount: false # Optional
-        #restoreNugetPackages: true # Optional
-        #msbuildArchitecture: 'x86' # Optional. Options: x86, x64
-        #logProjectEvents: true # Optional
-        #createLogFile: false # Optional
-        #logFileVerbosity: 'normal' # Optional. Options: quiet, minimal, normal, detailed, diagnostic
+        restoreSolution: '$(solution)'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '$(project)'
+        arguments: '--configuration $(buildConfiguration) --framework netcoreapp3.1'
+      displayName: 'build netcoreapp3.1 app'
 
     - task: CopyFiles@2
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin
+        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin/$(buildConfiguration)/netcoreapp3.1/
         contents: '**' 
-        targetFolder: $(Build.ArtifactStagingDirectory)/usb64
+        targetFolder: $(Build.ArtifactStagingDirectory)/usb64/netcoreapp3.1/
+        flattenFolders: true
+      displayName: 'Copy Application'
+      continueOnError: false
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'build'
+        projects: '$(project)'
+        arguments: '--configuration $(buildConfiguration) --framework net45'
+      displayName: 'build net45 app'
+
+    - task: CopyFiles@2
+      inputs:
+        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin/$(buildConfiguration)/net45/
+        contents: '**' 
+        targetFolder: $(Build.ArtifactStagingDirectory)/usb64/net45/
         flattenFolders: true
       displayName: 'Copy Application'
       continueOnError: false

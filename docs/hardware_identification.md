@@ -3,6 +3,7 @@
 Note: Cartridge menu OS versions prior to V3.04 will not work with this method.
 Note: There is no current way to know the hardware revision over USB within the OS menu.
 Note: There is no current way to know the cartridge OS version within ROM or over USB within the OS menu.
+Note: The hardware registers must first be unlocked, otherwise the version register will return incorrect values!
 
 ## Pseudo code
 
