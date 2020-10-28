@@ -11,7 +11,15 @@ namespace ed64usb
 
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
-        public const string MINIMUM_OS_VERSION = "3.05";
+        public const uint EMULATOR_ROM_ADDRESS = ROM_BASE_ADDRESS + 0x200000; //Emulators expect the ROM to start at this offset
+        
+        public const string MINIMUM_SUPPORTED_OS_VERSION = "3.05";
+
+        const int SIZE_4_KILOBYTE = 0x1000;
+        const int SIZE_512_KILOBYTE = 0x80000;
+        const int SIZE_1_MEGABYTE = 0x100000;
+        const int SIZE_8_MEGABYTE = 0x800000;
+        const int SIZE_32_MEGABYTE = 0x2000000;
 
         private enum TransmitCommand : byte
         {
@@ -63,7 +71,8 @@ namespace ed64usb
         /// <param name="filename">The filename</param>
         public static void DumpRom(string filename)
         {
-            var data = RomRead(ROM_BASE_ADDRESS, 0x101000); //TODO: 1052672 bytes (just over 1MB) what about larger ROMs?
+            //TODO: what is the maximum ROM size, and should trailing Zeros be cut?
+            var data = RomRead(ROM_BASE_ADDRESS, SIZE_1_MEGABYTE + SIZE_4_KILOBYTE); //TODO: only covers 1MB (+4KB CRC) ROMs and smaller, what about larger ROMs?
             File.WriteAllBytes(filename, data);
 
         }
@@ -71,14 +80,14 @@ namespace ed64usb
         /// <summary>
         /// Check that the ROM can be wriien and read.
         /// </summary>
-        public static void RunDiagnostics()
+        public static void RunDiagnostics() //TODO: only covers the first 8MB of ROM?!
         {
-            byte[] writeBuffer = new byte[0x100000]; //create a 8MB array
+            byte[] writeBuffer = new byte[SIZE_1_MEGABYTE]; //create a 1MB array
             byte[] readBuffer;
 
-            for (int i = 0; i < 0x800000; i += writeBuffer.Length) //for each 8MB in an 64MB range
+            for (int i = 0; i < SIZE_8_MEGABYTE; i += writeBuffer.Length) //for each 1MB in an 8MB range
             {
-                new Random().NextBytes(writeBuffer); //randomly fill the 8MB array
+                new Random().NextBytes(writeBuffer); //randomly fill the 1MB array
                 RomWrite(writeBuffer, ROM_BASE_ADDRESS);
                 readBuffer = RomRead(ROM_BASE_ADDRESS, writeBuffer.Length);
 
@@ -126,6 +135,7 @@ namespace ed64usb
                         var baseAddress = ROM_BASE_ADDRESS;
 
                         // We cannot rely on the filename for the format to be correct, so it is best to check the first 4 bytes of the ROM
+                        //TODO: check this works on linux!
                         var header = br.ReadUInt32(); // Reading the the bytes as a UInt32 simplifies the code below, but at the expense of changing the byte format.
                         br.BaseStream.Position = 0; // Reset the stream position for when we need to read the full ROM.
 
@@ -170,12 +180,12 @@ namespace ed64usb
 
                             default:
                                 Console.WriteLine("Unrecognised Rom Format: {0:X}, presuming emulator ROM.", header);
-                                baseAddress += 0x200000;
+                                baseAddress = EMULATOR_ROM_ADDRESS;
                                 break;
                         }
 
-                        var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
-                        
+                        var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0; //TODO: or should it be made clear that it is filling 4 bytes (i.e. 0x00000000)
+
                         FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
                         RomWrite(romBytes.ToArray(), baseAddress);
                     }
@@ -194,7 +204,7 @@ namespace ed64usb
 
             CommandPacketTransmit(TransmitCommand.RomRead, startAddress, length, 0);
 
-            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > SIZE_32_MEGABYTE ? SIZE_1_MEGABYTE : SIZE_512_KILOBYTE;
             var time = DateTime.Now.Ticks;
             var data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
@@ -214,7 +224,7 @@ namespace ed64usb
             CommandPacketTransmit(TransmitCommand.RamRead, startAddress, length, 0);
 
             Console.Write("Reading RAM...");
-            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > SIZE_32_MEGABYTE ? SIZE_1_MEGABYTE : SIZE_512_KILOBYTE;
             var time = DateTime.Now.Ticks;
             var data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
@@ -235,7 +245,7 @@ namespace ed64usb
 
             CommandPacketTransmit(TransmitCommand.RomWrite, startAddress, length, 0);
 
-            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > SIZE_32_MEGABYTE ? SIZE_1_MEGABYTE : SIZE_512_KILOBYTE;
             var time = DateTime.Now.Ticks;
             UsbInterface.Write(data);
             time = DateTime.Now.Ticks - time;
@@ -271,7 +281,7 @@ namespace ed64usb
 
         private static void FillCartridgeRomSpace(int romLength, uint value)
         {
-            var crcArea = 0x100000 + 4096;
+            var crcArea = SIZE_1_MEGABYTE + SIZE_4_KILOBYTE; // The N64 only requires a minimum of the first 1MB (and CRC area) to be filled.
             if (romLength < crcArea)
             {
 
@@ -352,7 +362,7 @@ namespace ed64usb
                     case ReceiveCommand.CommsReply:
                         return cmd;
                     case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
-                        throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
+                        throw new Exception($"Outdated OS, please update to {MINIMUM_SUPPORTED_OS_VERSION} or above!");
                     default:
                         throw new Exception("Unexpected response received from USB port.");
                 }
