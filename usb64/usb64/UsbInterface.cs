@@ -10,15 +10,17 @@ namespace ed64usb
         public static int ProgressBarTimerInterval { get; set; }
         public static int ProgressBarTimerCounter { get; set; }
 
+        const int DEFAULT_BLOCK_SIZE = 32768;
 
-        public static void Read(byte[] data, int offset, int length)
+
+        private static void Read(byte[] data, int offset, int length)
         {
 
             while (length > 0)
             {
-                int blockSize = 32768;
+                var blockSize = DEFAULT_BLOCK_SIZE;
                 if (blockSize > length) blockSize = length;
-                int bytesread = port.Read(data, offset, blockSize);
+                var bytesread = port.Read(data, offset, blockSize);
                 length -= bytesread;
                 offset += bytesread;
                 progressBarTimer_Update(bytesread);
@@ -29,7 +31,7 @@ namespace ed64usb
 
         public static byte[] Read(int length)
         {
-            byte[] data = new byte[length];
+            var data = new byte[length];
             Read(data, 0, data.Length);
             return data;
 
@@ -40,7 +42,7 @@ namespace ed64usb
 
             while (length > 0)
             {
-                int blockSize = 32768;
+                var blockSize = DEFAULT_BLOCK_SIZE;
                 if (blockSize > length) blockSize = length;
                 port.Write(data, offset, blockSize);
                 length -= blockSize;
@@ -80,11 +82,10 @@ namespace ed64usb
 
 
         // *************************** Serial port connection ***************************
-        //TODO: move this back to the main class and call this class as non static (passing the serialport in)
 
         public static void Connect()
         {
-            string[] ports = SerialPort.GetPortNames();
+            var ports = SerialPort.GetPortNames();
 
             foreach (var p in ports)
             {
