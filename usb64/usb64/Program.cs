@@ -13,7 +13,7 @@ namespace ed64usb
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("___________________________________________");
             Console.WriteLine();
-            Console.WriteLine($"EverDrive64 x-series USB utility: V{Assembly.GetExecutingAssembly().GetName().Version}");
+            Console.WriteLine($"EverDrive64 X-Series OS USB utility: V{Assembly.GetExecutingAssembly().GetName().Version}");
             Console.WriteLine("___________________________________________");
             Console.ResetColor();
         }
@@ -28,12 +28,12 @@ namespace ed64usb
             Console.WriteLine();
             Console.WriteLine("Single or multiple parameters consisting of:");
             Console.WriteLine();
-            Console.WriteLine("-fpga=<filename>");
-            Console.WriteLine("-rom=<filename>");
-            Console.WriteLine("-start");
-            Console.WriteLine("-diag");
-            Console.WriteLine("-drom=<filename>");
-            Console.WriteLine("-screen=<filename>");
+            Console.WriteLine("-fpga=<filename> (Loads specified FPGA file).");
+            Console.WriteLine("-rom=<filename> (Loads specified ROM).");
+            Console.WriteLine("-start[=<filepathAndNameFromSdRoot>] (Used for ROM save file).");
+            Console.WriteLine("-diag (Runs communications diagnostics.");
+            Console.WriteLine("-drom=<filename> (Dumps loaded ROM to PC).");
+            Console.WriteLine("-screen=<filename> (Dumps framebuffer as BMP to PC).");
             Console.WriteLine();
 
 
