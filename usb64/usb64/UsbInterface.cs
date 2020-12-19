@@ -23,10 +23,10 @@ namespace ed64usb
                 var bytesread = port.Read(data, offset, blockSize);
                 length -= bytesread;
                 offset += bytesread;
-                progressBarTimer_Update(bytesread);
+                ProgressBarTimer_Update(bytesread);
             }
 
-            progressBarTimer_Reset();
+            ProgressBarTimer_Reset();
         }
 
         public static byte[] Read(int length)
@@ -47,10 +47,10 @@ namespace ed64usb
                 port.Write(data, offset, blockSize);
                 length -= blockSize;
                 offset += blockSize;
-                progressBarTimer_Update(blockSize);
+                ProgressBarTimer_Update(blockSize);
             }
 
-            progressBarTimer_Reset();
+            ProgressBarTimer_Reset();
 
         }
 
@@ -59,7 +59,7 @@ namespace ed64usb
             Write(data, 0, data.Length);
         }
 
-        private static void progressBarTimer_Update(int value)
+        private static void ProgressBarTimer_Update(int value)
         {
             if (ProgressBarTimerInterval != 0)
             {
@@ -73,7 +73,7 @@ namespace ed64usb
             }
         }
 
-        private static void progressBarTimer_Reset()
+        private static void ProgressBarTimer_Reset()
         {
             ProgressBarTimerInterval = 0;
             ProgressBarTimerCounter = 0;
