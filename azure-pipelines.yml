@@ -141,46 +141,46 @@ jobs:
       continueOnError: false
 
 ##############################
-- job: Windows_USB64_App_net5
+# - job: Windows_USB64_App_net5
 
-  pool:
-    vmImage: 'windows-latest'
+#   pool:
+#     vmImage: 'windows-latest'
 
-  variables:
-    solution: '**/*.sln'
-    project: '**/*.csproj'
-    buildPlatform: 'Any CPU'
-    buildConfiguration: 'Release'
+#   variables:
+#     solution: '**/*.sln'
+#     project: '**/*.csproj'
+#     buildPlatform: 'Any CPU'
+#     buildConfiguration: 'Release'
   
-  steps:
+#   steps:
 
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
+#     - task: NuGetCommand@2
+#       inputs:
+#         restoreSolution: '$(solution)'
 
-    - task: DotNetCoreCLI@2
-      inputs:
-        command: 'build'
-        projects: '$(project)'
-        arguments: '--configuration $(buildConfiguration) --framework net5'
-      displayName: 'build net5 app'
+#     - task: DotNetCoreCLI@2
+#       inputs:
+#         command: 'build'
+#         projects: '$(project)'
+#         arguments: '--configuration $(buildConfiguration) --framework net5'
+#       displayName: 'build net5 app'
 
-    - task: CopyFiles@2
-      inputs:
-        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin/$(buildConfiguration)/net5/
-        contents: '**' 
-        targetFolder: $(Build.ArtifactStagingDirectory)/usb64/net5/
-        flattenFolders: true
-      displayName: 'Copy Application'
-      continueOnError: false
+#     - task: CopyFiles@2
+#       inputs:
+#         sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin/$(buildConfiguration)/net5/
+#         contents: '**' 
+#         targetFolder: $(Build.ArtifactStagingDirectory)/usb64/net5/
+#         flattenFolders: true
+#       displayName: 'Copy Application'
+#       continueOnError: false
 
-    - task: PublishBuildArtifacts@1
-      inputs:
-        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'binaries' 
-        publishLocation: 'Container'
-      displayName: Publish Build Artifacts
-      continueOnError: false
+#     - task: PublishBuildArtifacts@1
+#       inputs:
+#         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#         artifactName: 'binaries' 
+#         publishLocation: 'Container'
+#       displayName: Publish Build Artifacts
+#       continueOnError: false
 
 ##############################
 - job: Windows_USB64_App_net45
