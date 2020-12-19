@@ -99,7 +99,7 @@ jobs:
     continueOnError: false
 
 ##############################
-- job: Windows_USB64_App_netcoreapp3.1
+- job: Windows_USB64_App_netcoreapp3_1
 
   pool:
     vmImage: 'windows-latest'
@@ -267,7 +267,7 @@ jobs:
       continueOnError: false
 
 ##############################
-- job: Linux_USB64_App_netcoreapp3.1
+- job: Linux_USB64_App_netcoreapp3_1
 
   pool:
     vmImage: 'ubuntu-latest'
