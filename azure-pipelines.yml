@@ -242,7 +242,7 @@ jobs:
       inputs:
         restoreSolution: '$(solution)'
 
-      - task: DotNetCoreCLI@2
+    - task: DotNetCoreCLI@2
       inputs:
         command: 'build'
         projects: '$(project)'
