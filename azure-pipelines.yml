@@ -225,7 +225,7 @@ jobs:
       continueOnError: false
 
 ##############################
-- job: Windows_USB64_App
+- job: Windows_USB64_App_net40
 
   pool:
     vmImage: 'windows-latest'
@@ -246,14 +246,14 @@ jobs:
       inputs:
         command: 'build'
         projects: '$(project)'
-        arguments: '--configuration $(buildConfiguration) --framework net403'
-      displayName: 'build net403 app'
+        arguments: '--configuration $(buildConfiguration) --framework net40'
+      displayName: 'build net40 app'
 
     - task: CopyFiles@2
       inputs:
-        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin/$(buildConfiguration)/net403/
+        sourceFolder: $(Build.SourcesDirectory)/usb64/usb64/bin/$(buildConfiguration)/net40/
         contents: '**' 
-        targetFolder: $(Build.ArtifactStagingDirectory)/usb64/net403/
+        targetFolder: $(Build.ArtifactStagingDirectory)/usb64/net40/
         flattenFolders: true
       displayName: 'Copy Application'
       continueOnError: false

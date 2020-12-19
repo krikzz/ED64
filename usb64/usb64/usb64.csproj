@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">netcoreapp3.1;net5.0;net45;net403</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">netcoreapp3.1;net5.0;net45;net40</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1</TargetFrameworks>
     <Authors>Krikzz / NetworkFusion</Authors>
     <Company>Krikzz</Company>
@@ -22,7 +22,7 @@
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
     <Reference Include="System.IO.Ports" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net403' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net40' ">
     <Reference Include="System.IO.Ports" />
   </ItemGroup>
 
