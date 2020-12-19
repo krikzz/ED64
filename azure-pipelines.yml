@@ -1,19 +1,19 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
+# Only trigger when something useful happens
 trigger:
   branches:
     include: ["master", "develop*", "release-*", "refs/tags/*" ]
   paths:
     exclude: [ "doc", "*.md", ".gitignore", "README.md" ]
 
+# Dont build twice if the the branch is also a PR.
 pr:
   autoCancel: true
 
+# Generate jobs for parallel builds dependent on targets.
 jobs:
-- job: Windows_CMake_ROM
+  #Build the libdragon demo.
+  #TODO: (requires work).
+- job: Windows_libdragon_demo_rom
   pool:
     vmImage: 'windows-latest'
 
@@ -99,6 +99,7 @@ jobs:
     continueOnError: false
 
 ##############################
+# Build the .netCore 3.1 app for Windows 10.
 - job: Windows_USB64_App_netcoreapp3_1
 
   pool:
@@ -141,6 +142,7 @@ jobs:
       continueOnError: false
 
 ##############################
+# Build the .net5 app for Windows 10 and latest linux systems. (not yet compatible with latest azure pipeline).
 # - job: Windows_USB64_App_net5
 
 #   pool:
@@ -183,6 +185,7 @@ jobs:
 #       continueOnError: false
 
 ##############################
+# Build the .net 4.5 app for Windows 7 and above.
 - job: Windows_USB64_App_net45
 
   pool:
@@ -225,6 +228,7 @@ jobs:
       continueOnError: false
 
 ##############################
+# Build the .net 4.0 app for Windows XP and above.
 - job: Windows_USB64_App_net40
 
   pool:
@@ -267,6 +271,7 @@ jobs:
       continueOnError: false
 
 ##############################
+# Build the .netcore 3.1 app for supported linux systems.
 - job: Linux_USB64_App_netcoreapp3_1
 
   pool:
