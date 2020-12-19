@@ -135,7 +135,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'binaries' 
+        artifactName: 'windows-binaries' 
         publishLocation: 'Container'
       displayName: Publish Build Artifacts
       continueOnError: false
@@ -177,7 +177,7 @@ jobs:
 #     - task: PublishBuildArtifacts@1
 #       inputs:
 #         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-#         artifactName: 'binaries' 
+#         artifactName: 'windows-binaries' 
 #         publishLocation: 'Container'
 #       displayName: Publish Build Artifacts
 #       continueOnError: false
@@ -219,7 +219,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'binaries' 
+        artifactName: 'windows-binaries' 
         publishLocation: 'Container'
       displayName: Publish Build Artifacts
       continueOnError: false
@@ -261,7 +261,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'binaries' 
+        artifactName: 'windows-binaries' 
         publishLocation: 'Container'
       displayName: Publish Build Artifacts
       continueOnError: false
@@ -303,7 +303,7 @@ jobs:
     - task: PublishBuildArtifacts@1
       inputs:
         pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        artifactName: 'binaries' 
+        artifactName: 'linux-binaries' 
         publishLocation: 'Container'
       displayName: Publish Build Artifacts
       continueOnError: false
