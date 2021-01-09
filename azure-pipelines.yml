@@ -23,80 +23,80 @@ jobs:
     displayName: 'Get Ninja build'
     continueOnError: false
     
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: 'ninja-win.zip' 
-      destinationFolder: ED64-XIO/tools
-      cleanDestinationFolder: false 
-    displayName: 'Extract ninja build'
-    continueOnError: false  
+#   - task: ExtractFiles@1
+#     inputs:
+#       archiveFilePatterns: 'ninja-win.zip' 
+#       destinationFolder: ED64-XIO/tools
+#       cleanDestinationFolder: false 
+#     displayName: 'Extract ninja build'
+#     continueOnError: false  
 
-  - script: |
-      curl -L https://n64tools.blob.core.windows.net/binaries/N64-tools/mips64-gcc-toolchain/master/latest/gcc-toolchain-mips64-win64.zip --output gcc-toolchain-mips64-win64.zip
-    displayName: 'Get GCC toolchain'
-    continueOnError: false
+#   - script: |
+#       curl -L https://n64tools.blob.core.windows.net/binaries/N64-tools/mips64-gcc-toolchain/master/latest/gcc-toolchain-mips64-win64.zip --output gcc-toolchain-mips64-win64.zip
+#     displayName: 'Get GCC toolchain'
+#     continueOnError: false
 
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: 'gcc-toolchain-mips64-win64.zip' 
-      destinationFolder: ED64-XIO/toolchain/gcc-toolchain-mips64
-      cleanDestinationFolder: false 
-    displayName: 'Extract gcc-toolchain-mips64-win64'
-    continueOnError: false
+#   - task: ExtractFiles@1
+#     inputs:
+#       archiveFilePatterns: 'gcc-toolchain-mips64-win64.zip' 
+#       destinationFolder: ED64-XIO/toolchain/gcc-toolchain-mips64
+#       cleanDestinationFolder: false 
+#     displayName: 'Extract gcc-toolchain-mips64-win64'
+#     continueOnError: false
 
-  - script: |
-      curl -L https://n64tools.blob.core.windows.net/binaries/N64-tools/libdragon/develop/latest/libdragon-win64.zip --output libdragon-win64.zip
-    displayName: 'Get libdragon'
-    continueOnError: false
+#   - script: |
+#       curl -L https://n64tools.blob.core.windows.net/binaries/N64-tools/libdragon/develop/latest/libdragon-win64.zip --output libdragon-win64.zip
+#     displayName: 'Get libdragon'
+#     continueOnError: false
 
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: 'libdragon-win64.zip' 
-      destinationFolder: ED64-XIO/toolchain/libdragon
-      cleanDestinationFolder: false 
-    displayName: 'Extract libdragon-win64'
-    continueOnError: false
+#   - task: ExtractFiles@1
+#     inputs:
+#       archiveFilePatterns: 'libdragon-win64.zip' 
+#       destinationFolder: ED64-XIO/toolchain/libdragon
+#       cleanDestinationFolder: false 
+#     displayName: 'Extract libdragon-win64'
+#     continueOnError: false
 
-  - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)\ED64-XIO\tools"
-    displayName: Tweak PATH for Ninja
+#   - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)\ED64-XIO\tools"
+#     displayName: Tweak PATH for Ninja
 
-    #not sure why this is needed, but fails if not there!
-  - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)\ED64-XIO\toolchain\libdragon\tools"
-    displayName: Tweak PATH for libdragon tools
+#     #not sure why this is needed, but fails if not there!
+#   - script: echo "##vso[task.prependpath]$(Build.SourcesDirectory)\ED64-XIO\toolchain\libdragon\tools"
+#     displayName: Tweak PATH for libdragon tools
 
-  - task: CMake@1
-    inputs:
-      cmakeArgs:
-        -G Ninja 
-        -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/ED64-XIO/CMake/toolchain-libdragon.cmake
-        -DTOOLCHAIN_PREFIX=$(Build.SourcesDirectory)/ED64-XIO/toolchain/gcc-toolchain-mips64
-        -DLIBDRAGON_PREFIX=$(Build.SourcesDirectory)/ED64-XIO/toolchain/libdragon
-        $(Build.SourcesDirectory)/ED64-XIO/
-      workingDirectory: '$(Build.SourcesDirectory)/ED64-XIO/build'
-    displayName: Set CMake Options
+#   - task: CMake@1
+#     inputs:
+#       cmakeArgs:
+#         -G Ninja 
+#         -DCMAKE_TOOLCHAIN_FILE=$(Build.SourcesDirectory)/ED64-XIO/CMake/toolchain-libdragon.cmake
+#         -DTOOLCHAIN_PREFIX=$(Build.SourcesDirectory)/ED64-XIO/toolchain/gcc-toolchain-mips64
+#         -DLIBDRAGON_PREFIX=$(Build.SourcesDirectory)/ED64-XIO/toolchain/libdragon
+#         $(Build.SourcesDirectory)/ED64-XIO/
+#       workingDirectory: '$(Build.SourcesDirectory)/ED64-XIO/build'
+#     displayName: Set CMake Options
 
-  - task: CMake@1
-    inputs:
-      cmakeArgs: '--build $(Build.SourcesDirectory)/ED64-XIO/build --target all --config Release'
-      workingDirectory: '$(Build.SourcesDirectory)/ED64-XIO/build'
-    displayName: Build with CMake
+#   - task: CMake@1
+#     inputs:
+#       cmakeArgs: '--build $(Build.SourcesDirectory)/ED64-XIO/build --target all --config Release'
+#       workingDirectory: '$(Build.SourcesDirectory)/ED64-XIO/build'
+#     displayName: Build with CMake
 
-  - task: CopyFiles@2
-    inputs:
-      sourceFolder: $(Build.SourcesDirectory)/ED64-XIO/build
-      contents: '*.v64' 
-      targetFolder: $(Build.ArtifactStagingDirectory)/rom
-      flattenFolders: true
-    displayName: 'Copy ROM'
-    continueOnError: false
+#   - task: CopyFiles@2
+#     inputs:
+#       sourceFolder: $(Build.SourcesDirectory)/ED64-XIO/build
+#       contents: '*.v64' 
+#       targetFolder: $(Build.ArtifactStagingDirectory)/rom
+#       flattenFolders: true
+#     displayName: 'Copy ROM'
+#     continueOnError: false
 
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      artifactName: 'binaries' 
-      publishLocation: 'Container'
-    displayName: Publish Build Artifacts
-    continueOnError: false
+#   - task: PublishBuildArtifacts@1
+#     inputs:
+#       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+#       artifactName: 'binaries' 
+#       publishLocation: 'Container'
+#     displayName: Publish Build Artifacts
+#     continueOnError: false
 
 ##############################
 # Build the .netCore 3.1 app for Windows 10.
