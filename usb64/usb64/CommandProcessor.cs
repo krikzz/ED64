@@ -12,6 +12,7 @@ namespace ed64usb
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
         public const string MINIMUM_OS_VERSION = "3.05";
+        public const int MAX_ROM_SIZE = 0x3DEC800; //TODO: find the maz size.
 
         private enum TransmitCommand : byte
         {
@@ -61,11 +62,26 @@ namespace ed64usb
         /// Dumps the current ROM to a file
         /// </summary>
         /// <param name="filename">The filename</param>
-        public static void DumpRom(string filename)
+        public static void DumpRom(string filename, int size = MAX_ROM_SIZE)
         {
-            var data = RomRead(ROM_BASE_ADDRESS, 0x3DEC800); //TODO: 1052672 bytes (just over 1MB) what about larger ROMs?
-            File.WriteAllBytes(filename, data);
+            if (size <= MAX_ROM_SIZE)
+            {
+                var data = RomRead(ROM_BASE_ADDRESS, size);
+                if (BitConverter.IsLittleEndian) //convert endian on Windows (to keep BigEndian)
+                {
+                    for (int i = 0; i < data.Length; i += 4)
+                    {
+                        Array.Reverse(data, i, 4);
+                       //TODO: could possibily trim the trailing zeros here!
+                    }
+                }
 
+                File.WriteAllBytes(filename, data); //this is little endian on windows, not good!
+            }
+            else
+            {
+                Console.WriteLine("Unsupported ROM size.")
+            }
         }
 
         /// <summary>
