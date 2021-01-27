@@ -67,14 +67,14 @@ namespace ed64usb
             if (size <= MAX_ROM_SIZE)
             {
                 var data = RomRead(ROM_BASE_ADDRESS, size);
-                if (BitConverter.IsLittleEndian) //convert endian on Windows (to keep BigEndian)
-                {
-                    for (int i = 0; i < data.Length; i += 4)
-                    {
-                        Array.Reverse(data, i, 4);
-                       //TODO: could possibily trim the trailing zeros here!
-                    }
-                }
+                //if (BitConverter.IsLittleEndian) //convert endian on Windows (to keep BigEndian)
+                //{
+                //    for (int i = 0; i < data.Length; i += 4)
+                //    {
+                //        Array.Reverse(data, i, 4);
+                //       //TODO: could possibily trim the trailing zeros here!
+                //    }
+                //}
 
                 File.WriteAllBytes(filename, data); //this is little endian on windows, not good!
             }
@@ -130,7 +130,7 @@ namespace ed64usb
         /// Loads a ROM
         /// </summary>
         /// <param name="filename">The filename to load</param>
-        public static void LoadRom(string filename)
+        public static void LoadRom(string filename, bool diskDrive = false)
         {
             if (File.Exists(filename))
             {
@@ -141,61 +141,67 @@ namespace ed64usb
                         var romBytes = new List<byte>();
                         var baseAddress = ROM_BASE_ADDRESS;
 
-                        // We cannot rely on the filename for the format to be correct, so it is best to check the first 4 bytes of the ROM
-                        var header = br.ReadUInt32(); // Reading the the bytes as a UInt32 simplifies the code below, but at the expense of changing the byte format.
-                        br.BaseStream.Position = 0; // Reset the stream position for when we need to read the full ROM.
-
-                        switch (header)
+                        if (diskDrive == true)
                         {
-                            case 0x40123780: // BigEndian - Native (if reading the bytes in order, it would be 0x80371240)
-                                Console.Write("Rom format (BigEndian - Native).");
-                                // No Conversion necessary, just load the file.
-                                romBytes.AddRange(br.ReadBytes((int)fs.Length));
-                                break;
-                            case 0x12408037: //Byte Swapped (if reading the bytes in order, it would be 0x37804012)
-                                Console.WriteLine("Rom format (Byte Swapped).");
-                                // Swap each 2 bytes to make it Big Endian
-                                {
-                                    var chunk = br.ReadBytes(2).Reverse().ToArray();
-
-                                    while (chunk.Length > 0)
-                                    {
-                                        romBytes.AddRange(chunk);
-                                        chunk = br.ReadBytes(2).Reverse().ToArray();
-                                    }
-
-                                    romBytes.AddRange(chunk);
-                                }
-                                break;
-
-                            case 0x80371240: // Little Endian (if reading the bytes in order, it would be 0x40123780)
-                                Console.WriteLine("Rom format (Little Endian).");
-                                // Reverse each 4 bytes to make it Big Endian
-                                {
-                                    var chunk = br.ReadBytes(4).Reverse().ToArray();
-
-                                    while (chunk.Length > 0)
-                                    {
-                                        romBytes.AddRange(chunk);
-                                        chunk = br.ReadBytes(4).Reverse().ToArray();
-                                    }
-
-                                    romBytes.AddRange(chunk);
-                                }
-                                break;
-
-                            default:
-                                Console.WriteLine("Unrecognised Rom Format: {0:X}, presuming emulator ROM.", header);
-                                baseAddress += 0x200000;
-                                break;
+                            romBytes.AddRange(br.ReadBytes((int)fs.Length));
                         }
+                        else
+                        {
+                            // We cannot rely on the filename for the format to be correct, so it is best to check the first 4 bytes of the ROM
+                            var header = br.ReadUInt32(); // Reading the the bytes as a UInt32 simplifies the code below, but at the expense of changing the byte format.
+                            br.BaseStream.Position = 0; // Reset the stream position for when we need to read the full ROM.
 
-                        var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
-                        
-                        FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
-                        RomWrite(romBytes.ToArray(), baseAddress);
+                            switch (header)
+                            {
+                                case 0x40123780: // BigEndian - Native (if reading the bytes in order, it would be 0x80371240)
+                                    Console.Write("Rom format (BigEndian - Native).");
+                                    // No Conversion necessary, just load the file.
+                                    romBytes.AddRange(br.ReadBytes((int)fs.Length));
+                                    break;
+                                case 0x12408037: //Byte Swapped (if reading the bytes in order, it would be 0x37804012)
+                                    Console.WriteLine("Rom format (Byte Swapped).");
+                                    // Swap each 2 bytes to make it Big Endian
+                                    {
+                                        var chunk = br.ReadBytes(2).Reverse().ToArray();
+
+                                        while (chunk.Length > 0)
+                                        {
+                                            romBytes.AddRange(chunk);
+                                            chunk = br.ReadBytes(2).Reverse().ToArray();
+                                        }
+
+                                        romBytes.AddRange(chunk);
+                                    }
+                                    break;
+
+                                case 0x80371240: // Little Endian (if reading the bytes in order, it would be 0x40123780)
+                                    Console.WriteLine("Rom format (Little Endian).");
+                                    // Reverse each 4 bytes to make it Big Endian
+                                    {
+                                        var chunk = br.ReadBytes(4).Reverse().ToArray();
+
+                                        while (chunk.Length > 0)
+                                        {
+                                            romBytes.AddRange(chunk);
+                                            chunk = br.ReadBytes(4).Reverse().ToArray();
+                                        }
+
+                                        romBytes.AddRange(chunk);
+                                    }
+                                    break;
+
+                                default:
+                                    Console.WriteLine("Unrecognised Rom Format: {0:X}, presuming emulator ROM.", header);
+                                    baseAddress += 0x200000;
+                                    break;
+                            }
+
+                            var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
+
+                            FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
+                            RomWrite(romBytes.ToArray(), baseAddress);
+                        }
                     }
-                }
             }
         }
 
