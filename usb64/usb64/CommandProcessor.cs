@@ -195,13 +195,14 @@ namespace ed64usb
                                     baseAddress += 0x200000;
                                     break;
                             }
-
-                            var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
-
-                            FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
-                            RomWrite(romBytes.ToArray(), baseAddress);
                         }
+
+                        var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
+                        
+                        FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
+                        RomWrite(romBytes.ToArray(), baseAddress);
                     }
+                }
             }
         }
 
