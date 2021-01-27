@@ -12,7 +12,7 @@ namespace ed64usb
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
         public const string MINIMUM_OS_VERSION = "3.05";
-        public const int MAX_ROM_SIZE = 0x3DEC800; //TODO: find the maz size.
+        public const int MAX_ROM_SIZE = 0x3DEC800; //TODO: find the max size.
 
         private enum TransmitCommand : byte
         {
@@ -80,7 +80,7 @@ namespace ed64usb
             }
             else
             {
-                Console.WriteLine("Unsupported ROM size.")
+                Console.WriteLine("Unsupported ROM size.");
             }
         }
 
