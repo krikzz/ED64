@@ -123,7 +123,13 @@ namespace ed64usb
                         case string x when x.StartsWith("-rom"):
                             Console.Write("Writing ROM, ");
                             romFilePath = ExtractSubArg(arg);
-                            CommandProcessor.LoadRom(romFilePath, true); //TODO: as a test! Need to be able to handle properly!
+                            CommandProcessor.LoadRom(romFilePath, false);
+                            break;
+
+                        case string x when x.StartsWith("-rom-force"):
+                            Console.Write("Writing unknown file to ROM space, "); //Stops loader thinking that the ROM is for an emulator. Useful for 64DD tests.
+                            romFilePath = ExtractSubArg(arg);
+                            CommandProcessor.LoadRom(romFilePath, true);
                             break;
 
                         case string x when x.StartsWith("-start"):

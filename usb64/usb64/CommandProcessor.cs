@@ -12,7 +12,8 @@ namespace ed64usb
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
         public const string MINIMUM_OS_VERSION = "3.05";
-        public const int MAX_ROM_SIZE = 0x3DEC800; //TODO: find the max size.
+        public const int MAX_ROM_SIZE = 0x4000000;
+        public const int MIN_ROM_SIZE = 0x101000;
 
         private enum TransmitCommand : byte
         {
@@ -67,16 +68,7 @@ namespace ed64usb
             if (size <= MAX_ROM_SIZE)
             {
                 var data = RomRead(ROM_BASE_ADDRESS, size);
-                //if (BitConverter.IsLittleEndian) //convert endian on Windows (to keep BigEndian)
-                //{
-                //    for (int i = 0; i < data.Length; i += 4)
-                //    {
-                //        Array.Reverse(data, i, 4);
-                //       //TODO: could possibily trim the trailing zeros here!
-                //    }
-                //}
-
-                File.WriteAllBytes(filename, data); //this is little endian on windows, not good!
+                File.WriteAllBytes(filename, data);
             }
             else
             {
@@ -217,7 +209,7 @@ namespace ed64usb
 
             CommandPacketTransmit(TransmitCommand.RomRead, startAddress, length, 0);
 
-            UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
+            UsbInterface.ProgressBarTimerInterval = length > MAX_ROM_SIZE / 2 ? 0x100000 : 0x80000;
             var time = DateTime.Now.Ticks;
             var data = UsbInterface.Read(length);
             time = DateTime.Now.Ticks - time;
