@@ -30,6 +30,7 @@ namespace ed64usb
             Console.WriteLine();
             Console.WriteLine("-fpga=<filename> (Loads specified FPGA file).");
             Console.WriteLine("-rom=<filename> (Loads specified ROM).");
+            Console.WriteLine("-forcerom=<filename> (Loads specified ROM, even though it is not of a known type (e.g. 64dd).");
             Console.WriteLine("-start[=<filepathAndNameFromSdRoot>] (Used for ROM save file).");
             Console.WriteLine("-diag (Runs communications diagnostics.");
             Console.WriteLine("-drom=<filename> (Dumps loaded ROM to PC).");
@@ -126,7 +127,7 @@ namespace ed64usb
                             CommandProcessor.LoadRom(romFilePath, false);
                             break;
 
-                        case string x when x.StartsWith("-rom-force"):
+                        case string x when x.StartsWith("-forcerom"):
                             Console.Write("Writing unknown file to ROM space, "); //Stops loader thinking that the ROM is for an emulator. Useful for 64DD tests.
                             romFilePath = ExtractSubArg(arg);
                             CommandProcessor.LoadRom(romFilePath, true);
