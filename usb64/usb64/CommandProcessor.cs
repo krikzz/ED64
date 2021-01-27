@@ -63,7 +63,7 @@ namespace ed64usb
         /// <param name="filename">The filename</param>
         public static void DumpRom(string filename)
         {
-            var data = RomRead(ROM_BASE_ADDRESS, 0x101000); //TODO: 1052672 bytes (just over 1MB) what about larger ROMs?
+            var data = RomRead(ROM_BASE_ADDRESS, 0x3DEC800); //TODO: 1052672 bytes (just over 1MB) what about larger ROMs?
             File.WriteAllBytes(filename, data);
 
         }
