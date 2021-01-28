@@ -122,7 +122,7 @@ namespace ed64usb
         /// Loads a ROM
         /// </summary>
         /// <param name="filename">The filename to load</param>
-        public static void LoadRom(string filename, bool diskDrive = false)
+        public static void LoadRom(string filename, bool forceLoad = false)
         {
             if (File.Exists(filename))
             {
@@ -133,7 +133,7 @@ namespace ed64usb
                         var romBytes = new List<byte>();
                         var baseAddress = ROM_BASE_ADDRESS;
 
-                        if (diskDrive == true)
+                        if (forceLoad == true)
                         {
                             romBytes.AddRange(br.ReadBytes((int)fs.Length));
                         }
