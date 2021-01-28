@@ -65,7 +65,7 @@ namespace ed64usb
             {
                 ProgressBarTimerCounter += value;
             }
-            
+
             if (ProgressBarTimerCounter > ProgressBarTimerInterval)
             {
                 ProgressBarTimerCounter -= ProgressBarTimerInterval;

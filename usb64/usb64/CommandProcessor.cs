@@ -56,7 +56,7 @@ namespace ed64usb
             var length = width * height * 2;
 
             data = RamRead((uint)(RAM_BASE_ADDRESS | framebufferAddress), length); // Get the framebuffer data from cartridge RAM
-            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));       
+            File.WriteAllBytes(filename, ImageUtilities.ConvertToBitmap(width, height, data));
         }
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace ed64usb
                         }
 
                         var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
-                        
+
                         FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
                         RomWrite(romBytes.ToArray(), baseAddress);
                     }
@@ -277,7 +277,7 @@ namespace ed64usb
                 UsbInterface.Write(filenameBytes);
             }
             else
-            { 
+            {
                 throw new Exception("Filename exceeds the 256 character limit.");
             }
 

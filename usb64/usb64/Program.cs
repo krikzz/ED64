@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Text;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
+using System.Text;
 
 namespace ed64usb
 {
@@ -56,7 +56,7 @@ namespace ed64usb
                 UsbInterface.Connect();
                 HandleArguments(args);
 
-                
+
 
             }
             catch (Exception exception)
@@ -135,7 +135,7 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-start"):
                             var filename = ExtractSubArg(arg, true);
-                            if ( !string.IsNullOrEmpty(filename))
+                            if (!string.IsNullOrEmpty(filename))
                             {
                                 startFileName = filename; //this allows specifying a save file of a different name to the loaded ROM.
                             }
@@ -191,7 +191,7 @@ namespace ed64usb
                     {
                         throw new Exception("Could not start ROM");
                     }
-                    
+
                 }
             }
 
