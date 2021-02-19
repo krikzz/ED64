@@ -1,0 +1,31 @@
+name: Build Windows Usb64 App
+ 
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dotnet: [ 'net40', 'net45', 'netcoreapp3.1', 'net5.0' ]
+    name: Build ${{ matrix.dotnet }} usb64 App
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout Code
+     
+      - name: Setup MSBuild Path
+        uses: microsoft/setup-msbuild@v1.0.2
+        
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.5
+      
+      - name: Restore NuGet Packages
+        run: nuget restore ./usb64/usb64.sln
+  
+      - name: Build App
+        run: msbuild ./usb64/usb64.sln /p:Configuration=Release /p:framework=${{ matrix.dotnet }}
+  
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: usb64-${{ matrix.dotnet }}-app-windows
+          path: usb64\usb64\bin\Release\${{ matrix.dotnet }}\usb64.exe

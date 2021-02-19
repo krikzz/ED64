@@ -122,7 +122,7 @@ namespace ed64usb
         /// Loads a ROM
         /// </summary>
         /// <param name="filename">The filename to load</param>
-        public static void LoadRom(string filename, bool forceLoad = false)
+        public static void LoadRom(string filename, DeveloperRom.SaveType saveType = DeveloperRom.SaveType.None, DeveloperRom.ExtraInfo rtcOrRegionType = DeveloperRom.ExtraInfo.Off, bool forceLoad = false)
         {
             if (File.Exists(filename))
             {
@@ -192,6 +192,16 @@ namespace ed64usb
                         var fillValue = IsBootLoader(romBytes.ToArray()) ? 0xffffffff : 0;
 
                         FillCartridgeRomSpace(romBytes.ToArray().Length, fillValue);
+
+                        //we can deal with save types, RTC and region here!
+                        if (saveType != DeveloperRom.SaveType.None)
+                        {
+                            romBytes[0x3c] = (byte)'E';
+                            romBytes[0x3d] = (byte)'D';
+                            romBytes[0x3f] = (byte)saveType; //high nibble
+                            romBytes[0x3f] |= (byte)rtcOrRegionType; //low nibble
+                        }
+
                         RomWrite(romBytes.ToArray(), baseAddress);
                     }
                 }
@@ -210,9 +220,9 @@ namespace ed64usb
             CommandPacketTransmit(TransmitCommand.RomRead, startAddress, length, 0);
 
             UsbInterface.ProgressBarTimerInterval = length > MAX_ROM_SIZE / 2 ? 0x100000 : 0x80000;
-            var time = DateTime.Now.Ticks;
+            var time = DateTime.UtcNow.Ticks;
             var data = UsbInterface.Read(length);
-            time = DateTime.Now.Ticks - time;
+            time = DateTime.UtcNow.Ticks - time;
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
         }
@@ -230,9 +240,9 @@ namespace ed64usb
 
             Console.Write("Reading RAM...");
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
-            var time = DateTime.Now.Ticks;
+            var time = DateTime.UtcNow.Ticks;
             var data = UsbInterface.Read(length);
-            time = DateTime.Now.Ticks - time;
+            time = DateTime.UtcNow.Ticks - time;
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
             return data;
         }
@@ -251,9 +261,9 @@ namespace ed64usb
             CommandPacketTransmit(TransmitCommand.RomWrite, startAddress, length, 0);
 
             UsbInterface.ProgressBarTimerInterval = length > 0x2000000 ? 0x100000 : 0x80000;
-            var time = DateTime.Now.Ticks;
+            var time = DateTime.UtcNow.Ticks;
             UsbInterface.Write(data);
-            time = DateTime.Now.Ticks - time;
+            time = DateTime.UtcNow.Ticks - time;
 
             Console.WriteLine($"OK. speed: {GetSpeedString(data.Length, time)}"); //TODO: this should be in the main program! or at least return the time!
 
@@ -267,18 +277,19 @@ namespace ed64usb
         /// <remarks> The filename (optional) is used for creating a save file on the SD card</remarks>
         public static void StartRom(string fileName = "")
         {
-
-            if (fileName.Length < 256)
-            {
-                var filenameBytes = Encoding.ASCII.GetBytes(fileName);
-                Array.Resize(ref filenameBytes, 256); //The packet must be 256 bytes in length, so resize it.
-
-                CommandPacketTransmit(TransmitCommand.RomStart, 0, 0, 1);
-                UsbInterface.Write(filenameBytes);
-            }
-            else
+            if (fileName.Length > 256)
             {
                 throw new Exception("Filename exceeds the 256 character limit.");
+            }
+            
+            CommandPacketTransmit(TransmitCommand.RomStart, 0, 0, 1);
+
+            if (fileName.Length <= 256 && fileName.Length >= 1)
+            {
+                
+                var filenameBytes = Encoding.ASCII.GetBytes(fileName);
+                Array.Resize(ref filenameBytes, 256); //The packet must be 256 bytes in length, so resize it.
+                UsbInterface.Write(filenameBytes);
             }
 
         }

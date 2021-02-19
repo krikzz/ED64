@@ -13,7 +13,8 @@ Arg: `-rom=<filename>`
 
 ### Start ROM
 Starts the ROM written to the ED64's volatile memory
-Arg: `-start`		 
+Arg: `-start`
+Arg (Advanced): `-start[=<filename>]` (Only required when different from `-rom=<filename>` or using the command after the initial console session).	 
 
 
 ### Perform diagnostics
@@ -29,3 +30,24 @@ Arg: `-drom=<filename>`
 ### Take screenshot
 Generates an image from the frame buffer (in bitmap format)
 Arg `-screen=<filename>`
+
+
+### Developer options:
+
+#### Force ROM load
+Loads specified ROM, even though it is not of a known type (e.g. 64dd).
+Arg: `-forcerom=<filename>` ();
+
+#### Save Type
+Runs the ROM with a save type when not matched in the internal database
+ Arg: `-save=<savetype>`
+ Options: `[None,Eeprom4k,Eeprom16k,Sram,Sram768k,FlashRam,Sram128k]`
+
+ #### Extra Info
+ Runs the ROM with RTC or forced region
+Arg: `-extra=<RTC-RegionType>`
+Options: `[Off,Rtc,NoRegion,All]`
+
+#### Debug
+Runs the unf Debugger Console session
+Arg: `-unfdebug`
