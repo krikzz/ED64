@@ -12,8 +12,17 @@ jobs:
       - uses: actions/checkout@v2
         name: Checkout Code
      
-      - name: Setup MSBuild Path
-        uses: microsoft/setup-msbuild@v1.0.2
+      - name: Setup .NET Core 3.1
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+      - name: Setup .NET Core 5.0
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+
+      # - name: Setup MSBuild Path
+      #   uses: microsoft/setup-msbuild@v1.0.2
         
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v1.0.5
@@ -21,11 +30,16 @@ jobs:
       - name: Restore NuGet Packages
         run: nuget restore ./usb64/usb64.sln
   
+      # - name: Build App
+      #   run: msbuild ./usb64/usb64.sln /p:Configuration=Release /p:framework=${{ matrix.dotnet }}
+
       - name: Build App
-        run: msbuild ./usb64/usb64.sln /p:Configuration=Release /p:framework=${{ matrix.dotnet }}
+        run: dotnet build ./usb64/usb64.sln --configuration Release --no-restore --framework ${{ matrix.dotnet }}
+      #- name: Test App
+      #  run: dotnet test
   
       - name: Upload Artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: usb64-${{ matrix.dotnet }}-app-windows
-          path: usb64\usb64\bin\Release\${{ matrix.dotnet }}\usb64.exe
+          path: ${{ github.workspace }}\usb64\usb64\bin\Release\${{ matrix.dotnet }}\usb64.exe

@@ -8,8 +8,8 @@
     <Company>Krikzz</Company>
     <Copyright>Copyright © Krikzz, NetworkFusion 2020-2021</Copyright>
     <PackageProjectUrl>https://github.com/krikzz/ED64/</PackageProjectUrl>
-    <AssemblyVersion>2.0.0.2</AssemblyVersion>
-    <FileVersion>2.0.0.2</FileVersion>
+    <AssemblyVersion>2.0.0.3</AssemblyVersion>
+    <FileVersion>2.0.0.3</FileVersion>
     <RootNamespace>ed64usb</RootNamespace>
   </PropertyGroup>
 
