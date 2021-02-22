@@ -202,6 +202,20 @@ namespace ed64usb
                             romBytes[0x3f] |= (byte)rtcOrRegionType; //low nibble
                         }
 
+                        //Loading a ROM generated with 'makemask' over USB less than 1MB in size doesn't seem to like `0xff` padding. 
+                        //Lets remove them as a workaround!
+                        for (int i = romBytes.Count; i > 0; i--) //cycle backwards through the byte array
+                        {
+                            if (romBytes[i] == 0xff)
+                            {
+                                romBytes.RemoveAt(i);
+                            }
+                            else //break on first chance.
+                            {
+                                return;
+                            }
+                        }
+
                         RomWrite(romBytes.ToArray(), baseAddress);
                     }
                 }
@@ -300,11 +314,11 @@ namespace ed64usb
             var crcArea = 0x100000 + 4096;
             if (romLength < crcArea)
             {
-
+                Console.WriteLine();
                 Console.Write("Filling memory...");
                 CommandPacketTransmit(TransmitCommand.RomFillCartridgeSpace, ROM_BASE_ADDRESS, crcArea, value);
                 TestCommunication();
-                Console.WriteLine("ok");
+                Console.WriteLine(" Done.");
             }
 
         }
