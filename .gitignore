@@ -65,11 +65,6 @@ build/
 
 !ED64-XIO/res/font64.bin
 
-# Keep for now, but need to check the following later:
-!ED64-XIO/tools/romfix64.exe
-!ED64-XIO/tools/usb64.exe
-!ED64-XIO/build/ED64-XIO.v64
-
 
 #########################################################
 # Added for USB64:
