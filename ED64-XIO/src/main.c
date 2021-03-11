@@ -109,12 +109,12 @@ u8 demoMenu() {
         //Send some strings via virtual COM port and they will be printed on screen.
         //string length should be multiple of 4
         if (selector == MENU_USB_TERMINAL) {
-            usbTerminal();
+            usb_terminal();
         }
 
         //usb client demo compatible with usb64.exe
         if (selector == MENU_USB_LOADER) {
-            usbLoadGame();
+            usb_load_rom();
         }
 
         //everdrive hardware identification
