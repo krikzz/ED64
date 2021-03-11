@@ -5,7 +5,7 @@ FPGA firmware included in ED64 Menu OS version 3.04 or newer required to use thi
  [Table of Contents](/../../docs/table_of_contents.md)
 
 ## Features:
-* Simple file manager and game loading from disk
+* Simple file manager and ROM loading from SD card
 * Use files with FatFs lib
 * USB communications
 * ED64 hardware version identification

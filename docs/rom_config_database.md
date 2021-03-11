@@ -8,18 +8,18 @@ On Windows, the byte `0x3F` uses the save type at high nibble, and the extra con
 
 | ROM ID | = | SAVE TYPE | CONFIG | DEVELOPER OVERRIDE | DESCRIPTION           |
 |:-      |---|---        |---     |---                 |---                    |
-|ED      | = | 3         | 1      | `0x31`             | 64DD game SRAM+RTC    |
+|ED      | = | 3         | 1      | `0x31`             | 64DD ROM SRAM+RTC    |
 |ED      | = | 1         | 2      | `0x12`             | EEP4K+region-free     |
 |ED      | = | 1         | 2      | `0x13`             | EEP4K+region-free+RTC |
 
 
 ## Usage
-The ROM ID or CRC HI can be used for game detection (check "ROM Info" from the Everdrive OS menu for the value needed).
+The ROM ID or CRC HI can be used for ROM detection (check "ROM Info" from the Everdrive OS menu for the value needed).
 
 The line is depicted in this order:
 | ROM ID or CRC-HIGH | = | SAVE TYPE | CONFIG | DESCRIPTION                |
 |:-                  |---|---        |---     |---                         |
-|DD                  | = | 3         | 1      | All 64DD games SRAM+RTC    |
+|DD                  | = | 3         | 1      | All 64DD ROMs SRAM+RTC    |
 |0xABA51D09          | = | 1         | 2      | 40 Winks EEP4K+region-free |
 
 
@@ -41,7 +41,7 @@ Note: The CONFIG options can be mixed using addition (1+2=3 for rtc+region).
 |:-  |---              | ---     |
 | 0  | Off             |         |
 | 1  | Rtc             |         |
-| 2  | Region free ROM | Use native system region for game launch. For applications without region lock. |
+| 2  | Region free ROM | Use native system region for ROM launch. For applications without region lock. |
 | 3  | All             | Rtc and native system region are enabled. |
 
 
@@ -59,5 +59,5 @@ An example `save_db.txt` file would look like:
 ------------------------ ID detection ------------------------------ 
 N6=10		Dr. Mario. ROM ID detection EEP4K
 AF=51		Doubutsu no Mori FLASHRAM+RTC
-DD=31		All 64DD games SRAM+RTC
+DD=31		All 64DD cart conversion ROMs SRAM+RTC
 ```
