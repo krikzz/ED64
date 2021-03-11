@@ -30,7 +30,7 @@ u8 fileRead() {
 
     screen_clear();
     screen_print("Read 256 bytes from file: ");
-    screen_print("\"SD:\\");
+    screen_print("\"SD:/");
     screen_append_str_print(path);
     screen_append_str_print("\"");
     screen_print("");
@@ -92,7 +92,7 @@ u8 fileWrite() {
     screen_print("");
     screen_print("");
     screen_print("To the file: ");
-    screen_print("\"SD:\\");
+    screen_print("\"SD:/");
     screen_append_str_print(path);
     screen_append_str_print("\"");
     screen_print("");
