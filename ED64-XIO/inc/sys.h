@@ -1,9 +1,7 @@
-/* 
- * File:   sys.h
- * Author: igor
- *
- * Created on September 9, 2019, 2:44 AM
- */
+/*
+* Copyright (c) Krikzz and Contributors.
+* See LICENSE file in the project root for full license information.
+*/
 
 #ifndef SYS_H
 #define	SYS_H

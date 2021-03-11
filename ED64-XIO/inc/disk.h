@@ -1,9 +1,7 @@
-/* 
- * File:   disk.h
- * Author: igor
- *
- * Created on September 11, 2020, 7:00 PM
- */
+/*
+* Copyright (c) Krikzz and Contributors.
+* See LICENSE file in the project root for full license information.
+*/
 
 #ifndef SD_DISK_H
 #define	SD_DISK_H
@@ -15,10 +13,10 @@ extern "C" {
 
 #define DISK_ERR_INIT   0xD0
 #define DISK_ERR_CTO    0xD1
-#define DISK_ERR_RD1    0xD2//cmd tout
-#define DISK_ERR_RD2    0xD2//io error
-#define DISK_ERR_WR1    0xD3//cmd tout
-#define DISK_ERR_WR2    0xD3//io error
+#define DISK_ERR_RD1    0xD2 /* command timeout */
+#define DISK_ERR_RD2    0xD2 /* IO error */
+#define DISK_ERR_WR1    0xD3 /* command timeout */
+#define DISK_ERR_WR2    0xD3 /* IO error */
 
 u8 sd_disk_init();
 u8 sd_disk_read_to_ram(u32 sd_addr, void *dst, u16 slen);

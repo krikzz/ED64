@@ -1,9 +1,7 @@
-/* 
- * File:   bios.h
- * Author: krik
- *
- * Created on September 22, 2013, 2:34 PM
- */
+/*
+* Copyright (c) Krikzz and Contributors.
+* See LICENSE file in the project root for full license information.
+*/
 
 #ifndef BIOS_H
 #define	BIOS_H

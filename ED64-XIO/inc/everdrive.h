@@ -1,9 +1,7 @@
-/* 
- * File:   everdrive.h
- * Author: igor
- *
- * Created on September 11, 2020, 6:59 PM
- */
+/*
+* Copyright (c) Krikzz and Contributors.
+* See LICENSE file in the project root for full license information.
+*/
 
 #ifndef EVERDRIVE_H
 #define	EVERDRIVE_H
