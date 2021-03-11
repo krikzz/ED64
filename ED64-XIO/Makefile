@@ -23,7 +23,7 @@ OBJCOPY = $(GCCN64PREFIX)objcopy
 
 SRCDIR = src
 SRCDIR_EDLIB = $(SRCDIR)/edlib
-SRCDIR_FFLIB = $(SRCDIR)/ff
+SRCDIR_FFLIB = ff
 LIBDIR = lib
 INCDIR = inc
 INCDIR_EDLIB = inc/edlib
