@@ -29,17 +29,19 @@ u8 fileRead() {
 
 
     gCleanScreen();
-    gConsPrint("Content read from: ");
-    gAppendString("\"SD:\\");
+    gConsPrint("Read 256 bytes from file: ");
+    gConsPrint("\"SD:\\");
     gAppendString(path);
     gAppendString("\"");
-    gConsPrint("Press (B) to exit");
-
+    gConsPrint("");
     gConsPrint("");
     for (int i = 0; i < sizeof (buff); i++) {
         if (i % 16 == 0)gConsPrint("");
         gAppendHex8(buff[i]);
     }
+    gConsPrint("");
+    gConsPrint("");
+    gConsPrint("Press (B) to exit");
 
 
     gRepaint();

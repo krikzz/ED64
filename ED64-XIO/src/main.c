@@ -5,9 +5,9 @@
 
 #include "everdrive.h"
 
-void edid();
-void printError(u8 err);
-u8 demoMenu();
+void main_display_edid();
+void main_display_error(u8 err);
+u8 main_display_menu();
 
 int main(void) {
 
@@ -18,23 +18,23 @@ int main(void) {
     bi_init();
 
     gCleanScreen();
-    gConsPrint("FAT init...");
+    gConsPrint("FATFS initilizing...");
     gRepaint();
 
     /* mount disk */
     memset(&fs, 0, sizeof (fs));
     resp = f_mount(&fs, "", 1);
-    if (resp)printError(resp);
+    if (resp)main_display_error(resp);
 
 
     while (1) {
-        resp = demoMenu();
-        if (resp)printError(resp);
+        resp = main_display_menu();
+        if (resp)main_display_error(resp);
     }
 
 }
 
-u8 demoMenu() {
+u8 main_display_menu() {
 
     enum {
         MENU_FILE_MANAGER,
@@ -63,7 +63,7 @@ u8 demoMenu() {
         gCleanScreen();
 
         for (int i = 0; i < MENU_SIZE; i++) {
-            gConsPrint("   ");
+            gConsPrint("  ");
             if (i == selector) {
                 gAppendString(">");
             } else {
@@ -119,13 +119,13 @@ u8 demoMenu() {
 
         /* everdrive hardware identification */
         if (selector == MENU_EDID) {
-            edid();
+            main_display_edid();
         }
 
     }
 }
 
-void edid() {
+void main_display_edid() {
 
     struct controller_data cd;
     u32 id = bi_get_cart_id();
@@ -170,7 +170,7 @@ void edid() {
 
 }
 
-void printError(u8 err) {
+void main_display_error(u8 err) {
 
     gCleanScreen();
     gConsPrint("error: ");
