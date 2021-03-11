@@ -7,7 +7,7 @@
 
 u8 fileRead() {
 
-    u8 *path = "ED64/OS64.v64";
+    u8 *path = "ED64/OS64.v64"; /* this file is garanteed to exist! */
     struct controller_data cd;
     u8 buff[256];
     FIL f;
@@ -29,8 +29,10 @@ u8 fileRead() {
 
 
     gCleanScreen();
-    gConsPrint("Data readed from: ");
+    gConsPrint("Content read from: ");
+    gAppendString("\"");
     gAppendString(path);
+    gAppendString("\"");
     gConsPrint("Press (B) to exit");
 
     gConsPrint("");
@@ -83,10 +85,10 @@ u8 fileWrite() {
     gConsPrint("Sucessfully written the text: ");
     gConsPrint("`");
     gAppendString(msg);
-    gAppendString("`");
+    gAppendString("\"");
     gConsPrint("");
     gConsPrint("To the file: ");
-    gConsPrint("`");
+    gConsPrint("\"");
     gAppendString(path);
     gAppendString("`");
     gConsPrint("");
