@@ -39,10 +39,10 @@
 
 u32 crc7(u8 *buff, u32 len);
 
-u8 diskCmdSD(u8 cmd, u32 arg);
-u8 diskReadResp(u8 cmd);
-u8 diskOpenRead(u32 saddr);
-u8 diskCloseRW();
+u8 sd_disk_cmd(u8 cmd, u32 arg);
+u8 sd_disk_read_resp(u8 cmd);
+u8 sd_disk_open_read(u32 saddr);
+u8 sd_disk_close_rw();
 
 u8 sd_resp_buff[18];
 u32 disk_cur_addr;
@@ -51,7 +51,7 @@ u8 disk_mode;
 
 //****************************************************************************** disk base
 
-u8 diskInit() {
+u8 sd_disk_init() {
 
     u16 i;
     volatile u8 resp = 0;
@@ -65,12 +65,12 @@ u8 diskInit() {
 
     bi_sd_bitlen(8);
     for (i = 0; i < 40; i++)bi_sd_cmd_wr(0xff);
-    diskCmdSD(CMD0, 0x1aa);
+    sd_disk_cmd(CMD0, 0x1aa);
 
 
     for (i = 0; i < 40; i++)bi_sd_cmd_wr(0xff);
 
-    resp = diskCmdSD(CMD8, 0x1aa);
+    resp = sd_disk_cmd(CMD8, 0x1aa);
 
 
     if (resp != 0 && resp != DISK_ERR_CTO) {
@@ -85,10 +85,10 @@ u8 diskInit() {
 
         for (i = 0; i < wait_max; i++) {
 
-            resp = diskCmdSD(CMD55, 0);
+            resp = sd_disk_cmd(CMD55, 0);
             if (resp)return DISK_ERR_INIT;
             if ((sd_resp_buff[3] & 1) != 1)continue;
-            resp = diskCmdSD(CMD41, 0x40300000);
+            resp = sd_disk_cmd(CMD41, 0x40300000);
             if ((sd_resp_buff[1] & 128) == 0)continue;
 
             break;
@@ -97,9 +97,9 @@ u8 diskInit() {
 
         i = 0;
         do {
-            resp = diskCmdSD(CMD55, 0);
+            resp = sd_disk_cmd(CMD55, 0);
             if (resp)return DISK_ERR_INIT;
-            resp = diskCmdSD(CMD41, 0x40300000);
+            resp = sd_disk_cmd(CMD41, 0x40300000);
             if (resp)return DISK_ERR_INIT;
 
         } while (sd_resp_buff[1] < 1 && i++ < wait_max);
@@ -112,31 +112,31 @@ u8 diskInit() {
 
 
 
-    resp = diskCmdSD(CMD2, 0);
+    resp = sd_disk_cmd(CMD2, 0);
     if (resp)return DISK_ERR_INIT;
 
-    resp = diskCmdSD(CMD3, 0);
+    resp = sd_disk_cmd(CMD3, 0);
     if (resp)return DISK_ERR_INIT;
 
-    resp = diskCmdSD(CMD7, 0);
+    resp = sd_disk_cmd(CMD7, 0);
 
 
     rca = (sd_resp_buff[1] << 24) | (sd_resp_buff[2] << 16) | (sd_resp_buff[3] << 8) | (sd_resp_buff[4] << 0);
 
 
-    resp = diskCmdSD(CMD9, rca); //get csd
+    resp = sd_disk_cmd(CMD9, rca); //get csd
     if (resp)return DISK_ERR_INIT;
 
 
-    resp = diskCmdSD(CMD7, rca);
+    resp = sd_disk_cmd(CMD7, rca);
     if (resp)return DISK_ERR_INIT;
 
 
-    resp = diskCmdSD(CMD55, rca);
+    resp = sd_disk_cmd(CMD55, rca);
     if (resp)return DISK_ERR_INIT;
 
 
-    resp = diskCmdSD(CMD6, 0x02);
+    resp = sd_disk_cmd(CMD6, 0x02);
     if (resp)return DISK_ERR_INIT;
 
 
@@ -145,7 +145,7 @@ u8 diskInit() {
     return 0;
 }
 
-u8 diskCmdSD(u8 cmd, u32 arg) {
+u8 sd_disk_cmd(u8 cmd, u32 arg) {
 
 
     u8 p = 0;
@@ -172,10 +172,10 @@ u8 diskCmdSD(u8 cmd, u32 arg) {
 
     if (cmd == CMD18)return 0;
 
-    return diskReadResp(cmd);
+    return sd_disk_read_resp(cmd);
 }
 
-u8 diskReadResp(u8 cmd) {
+u8 sd_disk_read_resp(u8 cmd) {
 
     u16 i;
 
@@ -219,15 +219,15 @@ u32 crc7(u8 *buff, u32 len) {
 
 //****************************************************************************** read op
 
-u8 diskOpenRead(u32 saddr) {
+u8 sd_disk_open_read(u32 saddr) {
 
     u8 resp;
     if (disk_mode == DISK_MODE_RD && saddr == disk_cur_addr)return 0;
 
-    diskCloseRW();
+    sd_disk_close_rw();
     disk_cur_addr = saddr;
     if ((disk_card_type & SD_HC) == 0)saddr *= 512;
-    resp = diskCmdSD(CMD18, saddr);
+    resp = sd_disk_cmd(CMD18, saddr);
     if (resp)return resp;
 
     disk_mode = DISK_MODE_RD;
@@ -235,11 +235,11 @@ u8 diskOpenRead(u32 saddr) {
     return 0;
 }
 
-u8 diskReadToRam(u32 sd_addr, void *dst, u16 slen) {
+u8 sd_disk_read_to_ram(u32 sd_addr, void *dst, u16 slen) {
 
     u8 resp = 0;
 
-    resp = diskOpenRead(sd_addr);
+    resp = sd_disk_open_read(sd_addr);
     if (resp)return DISK_ERR_RD1;
     disk_cur_addr += slen;
 
@@ -249,11 +249,11 @@ u8 diskReadToRam(u32 sd_addr, void *dst, u16 slen) {
     return 0;
 }
 
-u8 diskReadToRom(u32 sd_addr, u32 dst, u16 slen) {
+u8 sd_disk_read_to_rom(u32 sd_addr, u32 dst, u16 slen) {
 
     u8 resp = 0;
 
-    resp = diskOpenRead(sd_addr);
+    resp = sd_disk_open_read(sd_addr);
     if (resp)return DISK_ERR_RD1;
     disk_cur_addr += slen;
 
@@ -263,24 +263,24 @@ u8 diskReadToRom(u32 sd_addr, u32 dst, u16 slen) {
     return 0;
 }
 
-u8 diskRead(void *dst, u32 saddr, u32 slen) {
+u8 sd_disk_read(void *dst, u32 saddr, u32 slen) {
 
     if (((u32) dst & 0x1FFFFFFF) < 0x800000) {
-        return diskReadToRam(saddr, dst, slen);
+        return sd_disk_read_to_ram(saddr, dst, slen);
     } else {
-        return diskReadToRom(saddr, ((u32) dst) & 0x3FFFFFF, slen);
+        return sd_disk_read_to_rom(saddr, ((u32) dst) & 0x3FFFFFF, slen);
     }
 }
 //****************************************************************************** var
 
-u8 diskCloseRW() {
+u8 sd_disk_close_rw() {
 
     u8 resp;
     u16 i;
 
     if (disk_mode == DISK_MODE_NOP)return 0;
 
-    resp = diskCmdSD(CMD12, 0);
+    resp = sd_disk_cmd(CMD12, 0);
     disk_mode = DISK_MODE_NOP;
     if (resp)return resp;
 
@@ -301,15 +301,15 @@ u8 diskCloseRW() {
 
 //****************************************************************************** write op
 
-u8 diskOpenWrite(u32 saddr) {
+u8 sd_disk_open_write(u32 saddr) {
 
     u8 resp;
     if (disk_mode == DISK_MODE_WR && saddr == disk_cur_addr)return 0;
 
-    diskCloseRW();
+    sd_disk_close_rw();
     disk_cur_addr = saddr;
     if ((disk_card_type & SD_HC) == 0)saddr *= 512;
-    resp = diskCmdSD(CMD25, saddr);
+    resp = sd_disk_cmd(CMD25, saddr);
     if (resp)return resp;
 
     disk_mode = DISK_MODE_WR;
@@ -317,11 +317,11 @@ u8 diskOpenWrite(u32 saddr) {
     return 0;
 }
 
-u8 diskWrite(void *src, u32 saddr, u32 slen) {
+u8 sd_disk_write(void *src, u32 saddr, u32 slen) {
 
     u8 resp;
 
-    resp = diskOpenWrite(saddr);
+    resp = sd_disk_open_write(saddr);
     if (resp)return DISK_ERR_WR1;
     disk_cur_addr += slen;
 
