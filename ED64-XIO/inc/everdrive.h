@@ -4,17 +4,17 @@
 */
 
 #ifndef EVERDRIVE_H
-#define	EVERDRIVE_H
+#define EVERDRIVE_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-#include "sys.h"
 #include "bios.h"
 #include "disk.h"
 #include "ff.h"
+#include "sys.h"
+
 
 void rom_boot_simulator(u8 cic);
 u8 fmanager_display();
@@ -27,4 +27,4 @@ u8 fileWrite();
 }
 #endif
 
-#endif	/* EVERDRIVE_H */
+#endif /* EVERDRIVE_H */

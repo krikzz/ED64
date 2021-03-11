@@ -269,12 +269,12 @@ void screen_append_hex4_print(u8 val);
 void screen_clear() {
 
     g_cur_pal = 0;
-    gSetXY(G_BORDER_X, G_BORDER_Y);
+    screen_set_xy_pos(G_BORDER_X, G_BORDER_Y);
     for (int i = 0; i < G_SCREEN_W * G_SCREEN_H; i++)gfx_buff[i] = PAL_B3;
-    gSetPal(PAL_B1);
+    screen_set_pal(PAL_B1);
 }
 
-void gSetPal(u16 pal) {
+void screen_set_pal(u16 pal) {
     g_cur_pal = pal;
 }
 
@@ -312,7 +312,7 @@ void screen_append_hex32_print(u32 val) {
 
 }
 
-void gSetXY(u8 x, u8 y) {
+void screen_set_xy_pos(u8 x, u8 y) {
 
     g_cons_ptr = x + y * G_SCREEN_W;
     g_disp_ptr = &gfx_buff[g_cons_ptr];
