@@ -148,7 +148,7 @@ void screen_append_hex16_print(u16 val);
 void screen_append_hex32_print(u32 val);
 void screen_append_hex32_print(u32 val);
 void screen_repaint();
-void gVsync();
+void screen_vsync();
 
 #ifdef __cplusplus
 }

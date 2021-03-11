@@ -16,8 +16,8 @@ extern "C" {
 #include "disk.h"
 #include "ff.h"
 
-void boot_simulator(u8 cic);
-u8 fmanager();
+void rom_boot_simulator(u8 cic);
+u8 fmanager_display();
 void usb_terminal();
 void usb_load_rom();
 u8 fileRead();

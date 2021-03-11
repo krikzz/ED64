@@ -28,7 +28,7 @@ void usb_terminal() {
 
     while (1) {
 
-        gVsync();
+        screen_vsync();
         controller_scan();
         cd = get_keys_down();
         if (cd.c[0].B)return;
@@ -62,7 +62,7 @@ void usb_load_rom() {
 
     while (1) {
 
-        gVsync();
+        screen_vsync();
         controller_scan();
         cd = get_keys_down();
         if (cd.c[0].B)return;
@@ -87,7 +87,7 @@ void usb_load_rom() {
         //start the game
         if (usb_cmd == 's') {
             bi_game_cfg_set(SAVE_EEP16K); /* set save type */
-            boot_simulator(CIC_6102); /* run the ROM */
+            rom_boot_simulator(CIC_6102); /* run the ROM */
         }
 
         /* Fill ro memory. Used if ROM size less than 2MB (required for correct crc values) */

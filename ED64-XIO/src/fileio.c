@@ -46,7 +46,7 @@ u8 fileRead() {
 
     screen_repaint();
     while (1) {
-        gVsync();
+        screen_vsync();
         controller_scan();
         cd = get_keys_down();
 
@@ -102,7 +102,7 @@ u8 fileWrite() {
 
     screen_repaint();
     while (1) {
-        gVsync();
+        screen_vsync();
         controller_scan();
         cd = get_keys_down();
 

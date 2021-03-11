@@ -252,12 +252,12 @@ void screen_repaint() {
     }
 
     data_cache_hit_writeback(screen.current, screen.buff_len * 2);
-    gVsync();
+    screen_vsync();
     vregs[1] = (vu32) screen.current;
 
 }
 
-void gVsync() {
+void screen_vsync() {
 
     while (vregs[4] == 0x200);
     while (vregs[4] != 0x200);

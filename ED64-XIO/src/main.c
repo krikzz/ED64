@@ -18,7 +18,7 @@ int main(void) {
     bi_init();
 
     screen_clear();
-    screen_print("FATFS initilizing...");
+    screen_print("File system initilizing...");
     screen_repaint();
 
     /* mount disk */
@@ -88,7 +88,7 @@ u8 main_display_menu() {
 
         /* browse files in root dir and launch the ROM */
         if (selector == MENU_FILE_MANAGER) {
-            resp = fmanager();
+            resp = fmanager_display();
             if (resp)return resp;
         }
 
@@ -158,7 +158,7 @@ void main_display_edid() {
     screen_print("Press (B) to exit");
     screen_repaint();
     while (1) {
-        gVsync();
+        screen_vsync();
         controller_scan();
         cd = get_keys_down();
 
@@ -180,7 +180,7 @@ void main_display_error(u8 err) {
     while (1);
 }
 
-void boot_simulator(u8 cic) {
+void rom_boot_simulator(u8 cic) {
 
 
     static u16 cheats_on; /* 0 = off, 1 = select, 2 = all */

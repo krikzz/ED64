@@ -5,13 +5,13 @@
 
 #include "everdrive.h"
 
-u8 fmLoadDir(u8 *path, FILINFO *inf, u32 max_items);
-u8 fmLoadGame(u8 *path);
+u8 fm_load_dir(u8 *path, FILINFO *inf, u32 max_items);
+u8 fm_load_rom(u8 *path);
 
 #define MAX_DIR_SIZE    20
 #define MAX_STR_LEN     36
 
-u8 fmanager() {
+u8 fmanager_display() {
 
     FILINFO inf[MAX_DIR_SIZE];
     u32 selector = 0;
@@ -19,7 +19,7 @@ u8 fmanager() {
     u8 resp;
 
     /* open root dir */
-    resp = fmLoadDir("", inf, MAX_DIR_SIZE);
+    resp = fm_load_dir("", inf, MAX_DIR_SIZE);
     if (resp)return resp;
 
 
@@ -40,7 +40,7 @@ u8 fmanager() {
         /* controls */
         while (1) {
 
-            gVsync();
+            screen_vsync();
             controller_scan();
             cd = get_keys_down();
 
@@ -62,11 +62,11 @@ u8 fmanager() {
                 screen_print("loading...");
                 screen_repaint();
 
-                resp = fmLoadGame(inf[selector].fname);
+                resp = fm_load_rom(inf[selector].fname);
                 if (resp)return resp;
 
                 bi_game_cfg_set(SAVE_EEP16K); /* set save type */
-                boot_simulator(CIC_6102); /* run the ROM */
+                rom_boot_simulator(CIC_6102); /* run the ROM */
             }
         }
     }
@@ -74,7 +74,7 @@ u8 fmanager() {
     return 0;
 }
 
-u8 fmLoadDir(u8 *path, FILINFO *inf, u32 max_items) {
+u8 fm_load_dir(u8 *path, FILINFO *inf, u32 max_items) {
 
     u8 resp;
     DIR dir;
@@ -96,7 +96,7 @@ u8 fmLoadDir(u8 *path, FILINFO *inf, u32 max_items) {
     return 0;
 }
 
-u8 fmLoadGame(u8 *path) {
+u8 fm_load_rom(u8 *path) {
 
     FIL f;
     u8 resp;
