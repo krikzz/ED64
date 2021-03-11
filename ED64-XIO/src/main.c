@@ -55,8 +55,8 @@ u8 demoMenu() {
     menu[MENU_FILE_READ] = "File Read";
     menu[MENU_FILE_WRITE] = "File Write";
     menu[MENU_USB_TERMINAL] = "USB Terminal";
-    menu[MENU_USB_LOADER] = "USB Loader";
-    menu[MENU_EDID] = "EverDrive ID";
+    menu[MENU_USB_LOADER] = "USB ROM Loader";
+    menu[MENU_EDID] = "ED64 Hardware Rev ID";
 
     while (1) {
 
