@@ -31,7 +31,7 @@ u8 fileRead() {
     gCleanScreen();
     gConsPrint("Data readed from: ");
     gAppendString(path);
-    gConsPrint("Press 'B' to exit");
+    gConsPrint("Press (B) to exit");
 
     gConsPrint("");
     for (int i = 0; i < sizeof (buff); i++) {
@@ -57,7 +57,7 @@ u8 fileRead() {
 u8 fileWrite() {
 
     u8 *path = "test.txt";
-    u8 *msg = "This is test message";
+    u8 *msg = "This is an example to show text can be written to a file!";
     struct controller_data cd;
     FIL f;
     UINT bw;
@@ -80,14 +80,18 @@ u8 fileWrite() {
 
 
     gCleanScreen();
-    gConsPrint("The String: ");
-    gConsPrint(msg);
+    gConsPrint("Sucessfully written the text: ");
+    gConsPrint("`");
+    gAppendString(msg);
+    gAppendString("`");
     gConsPrint("");
-    gConsPrint("Was written to the file: ");
-    gConsPrint(path);
+    gConsPrint("To the file: ");
+    gConsPrint("`");
+    gAppendString(path);
+    gAppendString("`");
     gConsPrint("");
     gConsPrint("");
-    gConsPrint("Press 'B' to exit");
+    gConsPrint("Press (B) to exit");
 
     gRepaint();
     while (1) {

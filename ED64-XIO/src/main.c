@@ -156,7 +156,7 @@ void edid() {
 
 
     gConsPrint("");
-    gConsPrint("Press 'B' to exit");
+    gConsPrint("Press (B) to exit");
     gRepaint();
     while (1) {
         gVsync();
