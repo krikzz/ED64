@@ -33,7 +33,7 @@ DSTATUS disk_status(
 }
 
 /*-----------------------------------------------------------------------*/
-/* Inidialize a Drive                                                    */
+/* Initialize a Drive                                                    */
 
 /*-----------------------------------------------------------------------*/
 
@@ -129,3 +129,10 @@ DRESULT disk_ioctl(
     return res;
 }
 
+DWORD get_fattime (void)
+{
+	//TODO: add ability to use the X7 or V3 RTC.
+	return ((DWORD)(FF_NORTC_YEAR - 1980) << 25 |
+            (DWORD)FF_NORTC_MON << 21 |
+            (DWORD)FF_NORTC_MDAY << 16);
+}
