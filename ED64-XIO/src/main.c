@@ -63,7 +63,7 @@ u8 demoMenu() {
         gCleanScreen();
 
         for (int i = 0; i < MENU_SIZE; i++) {
-            gConsPrint("          ");
+            gConsPrint("   ");
             if (i == selector) {
                 gAppendString(">");
             } else {

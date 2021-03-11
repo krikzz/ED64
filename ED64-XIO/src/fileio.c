@@ -83,14 +83,17 @@ u8 fileWrite() {
 
     gCleanScreen();
     gConsPrint("Sucessfully written the text: ");
-    gConsPrint("`");
+    gConsPrint("");
+    gConsPrint("\"");
     gAppendString(msg);
     gAppendString("\"");
+    gConsPrint("");
     gConsPrint("");
     gConsPrint("To the file: ");
     gConsPrint("\"");
     gAppendString(path);
-    gAppendString("`");
+    gAppendString("\"");
+    gConsPrint("");
     gConsPrint("");
     gConsPrint("");
     gConsPrint("Press (B) to exit");

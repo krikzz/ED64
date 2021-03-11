@@ -17,6 +17,10 @@ void usb_terminal() {
 
     gCleanScreen();
     gConsPrint("USB COM terminal demo");
+    gConsPrint("");
+    gConsPrint("Waiting to receive data...");
+    gConsPrint("");
+    gConsPrint("");
     gConsPrint("Press (B) to exit");
     gRepaint();
 
