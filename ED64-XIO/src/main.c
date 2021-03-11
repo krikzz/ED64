@@ -52,8 +52,8 @@ u8 demoMenu() {
     u8 resp;
 
     menu[MENU_FILE_MANAGER] = "File Explorer";
-    menu[MENU_FILE_READ] = "File Read (\"ED64/OS64.v64\")";
-    menu[MENU_FILE_WRITE] = "File Write (\"test.txt\")";
+    menu[MENU_FILE_READ] = "File Read (\"SD:\\ED64\\OS64.v64\")";
+    menu[MENU_FILE_WRITE] = "File Write (\"SD:\\test.txt\")";
     menu[MENU_USB_TERMINAL] = "USB Terminal";
     menu[MENU_USB_LOADER] = "USB ROM Loader";
     menu[MENU_EDID] = "ED64 Hardware Rev ID";

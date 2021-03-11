@@ -30,7 +30,7 @@ u8 fileRead() {
 
     gCleanScreen();
     gConsPrint("Content read from: ");
-    gAppendString("\"");
+    gAppendString("\"SD:\\");
     gAppendString(path);
     gAppendString("\"");
     gConsPrint("Press (B) to exit");
@@ -90,7 +90,7 @@ u8 fileWrite() {
     gConsPrint("");
     gConsPrint("");
     gConsPrint("To the file: ");
-    gConsPrint("\"");
+    gConsPrint("\"SD:\\");
     gAppendString(path);
     gAppendString("\"");
     gConsPrint("");
