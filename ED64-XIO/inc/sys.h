@@ -109,18 +109,14 @@ typedef struct {
     u16 *bgr_ptr;
 } Screen;
 
-#define G_SCREEN_W      40 //screen.w
-#define G_SCREEN_H      30 //screen.h
-
-
 void sysInit();
 void sysPI_rd(void *ram, unsigned long pi_address, unsigned long len);
 void sysPI_wr(void *ram, unsigned long pi_address, unsigned long len);
 
 
 
-#define G_SCREEN_W      40 //screen.w
-#define G_SCREEN_H      30 //screen.h
+#define G_SCREEN_W      40 /* screen width (horizontal) */
+#define G_SCREEN_H      30 /* screen height (vertical) */
 #define G_BORDER_X      2
 #define G_BORDER_Y      2
 #define G_MAX_STR_LEN   (G_SCREEN_W - G_BORDER_X*2)
@@ -142,7 +138,7 @@ void screen_print(u8 *str);
 void gSetXY(u8 x, u8 y);
 void gSetPal(u16 pal);
 void screen_append_str_print(u8 *str);
-void gAppendChar(u8 chr);
+void screen_append_char_print(u8 chr);
 void screen_append_hex8_print(u8 val);
 void screen_append_hex16_print(u16 val);
 void screen_append_hex32_print(u32 val);

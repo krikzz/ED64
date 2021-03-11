@@ -282,7 +282,7 @@ void screen_append_str_print(u8 *str) {
     while (*str != 0)*g_disp_ptr++ = *str++ + g_cur_pal;
 }
 
-void gAppendChar(u8 chr) {
+void screen_append_char_print(u8 chr) {
 
     *g_disp_ptr++ = chr + g_cur_pal;
 }

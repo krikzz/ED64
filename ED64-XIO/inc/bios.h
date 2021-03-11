@@ -13,8 +13,8 @@ extern "C" {
 
 #include "sys.h"
 
-#define BI_SIZE_ROM     0x4000000       //rom size
-#define BI_SIZE_BRM     0x20000         //backup ram size
+#define BI_SIZE_ROM     0x4000000       /*rom size */
+#define BI_SIZE_BRM     0x20000         //backup ram size */
 
 #define BI_ADDR_ROM    (KSEG1 | 0x10000000)
 #define BI_ADDR_BRM    (KSEG1 | 0x08000000)
@@ -24,18 +24,18 @@ extern "C" {
 #define BI_ERR_USB_TOUT         0xB2
 #define BI_ERR_FPG_CFG          0xB3
 
-//sd controller speed select. LO speed only for init procedure
+/* sd controller speed select. LO speed only for init procedure */
 #define BI_DISK_SPD_LO  0x00
 #define BI_DISK_SPD_HI  0x01
 
-//bootloader flags
+/* bootloader flags */
 #define BI_BCFG_BOOTMOD 0x01   
 #define BI_BCFG_SD_INIT 0x02
 #define BI_BCFG_SD_TYPE 0x04
 #define BI_BCFG_GAMEMOD 0x08
 #define BI_BCFG_CICLOCK 0x8000
 
-//dd table to know data areas which should be saved
+/* 64dd ROM table to know which data areas should be saved */
 #define BI_DD_TBL_SIZE  2048
 #define BI_DD_PGE_SIZE  0x8000
 
@@ -44,7 +44,7 @@ extern "C" {
 #define CART_ID_X7      0xED640013
 #define CART_ID_X5      0xED640014
 
-//game cfg register flags
+/* game cfg register flags */
 #define SAVE_OFF        0x0000
 #define SAVE_EEP4K      0x0001
 #define SAVE_EEP16K     0x0002
@@ -75,7 +75,7 @@ u8 bi_sd_to_ram(void *dst, u16 slen);
 u8 bi_sd_to_rom(u32 dst, u16 slen);
 u8 bi_ram_to_sd(void *src, u16 slen);
 
-void bi_game_cfg_set(u8 type); //set save type
+void bi_game_cfg_set(u8 type); /* set save type */
 void bi_wr_swap(u8 swap_on);
 u32 bi_get_cart_id();
 
