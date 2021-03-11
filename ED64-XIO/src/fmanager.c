@@ -18,26 +18,26 @@ u8 fmanager() {
     struct controller_data cd;
     u8 resp;
 
-    //open root dir
+    /* open root dir */
     resp = fmLoadDir("", inf, MAX_DIR_SIZE);
     if (resp)return resp;
 
 
     while (1) {
 
-        //print items
+        /* print items */
         gCleanScreen();
         for (int i = 0; i < MAX_DIR_SIZE && inf[i].fname[0]; i++) {
             gConsPrint(selector == i ? ">" : " ");
             u8 tmp = inf[i].fname[MAX_STR_LEN];
-            inf[i].fname[MAX_STR_LEN] = 0; //make sure that the printed string doesn't exceed max len
+            inf[i].fname[MAX_STR_LEN] = 0; /* make sure that the printed string doesn't exceed max len */
             gAppendString(inf[i].fname);
             inf[i].fname[MAX_STR_LEN] = tmp;
         }
 
         gRepaint();
 
-        //controls
+        /* controls */
         while (1) {
 
             gVsync();
@@ -65,8 +65,8 @@ u8 fmanager() {
                 resp = fmLoadGame(inf[selector].fname);
                 if (resp)return resp;
 
-                bi_game_cfg_set(SAVE_EEP16K); //set save type
-                boot_simulator(CIC_6102); //run the game
+                bi_game_cfg_set(SAVE_EEP16K); /* set save type */
+                boot_simulator(CIC_6102); /* run the ROM */
             }
         }
     }
@@ -87,7 +87,7 @@ u8 fmLoadDir(u8 *path, FILINFO *inf, u32 max_items) {
 
         resp = f_readdir(&dir, &inf[i]);
         if (resp)return resp;
-        if (inf[i].fname[0] == 0)break; //no directory items anymore
+        if (inf[i].fname[0] == 0)break; /* no directory items anymore */
     }
 
     resp = f_closedir(&dir);
@@ -109,7 +109,7 @@ u8 fmLoadGame(u8 *path) {
 
     fsize = f.obj.objsize - f.fptr;
 
-    //read rom header
+    /* read rom header */
     resp = f_read(&f, header, sizeof (header), &br);
     if (resp)return resp;
 
@@ -118,12 +118,12 @@ u8 fmLoadGame(u8 *path) {
     if (resp)return resp;
 
     if (header[1] == 0x80) {
-        //enable byte swapping for disk operations if rom image has swapped byte order
-        //affects only reading to ROM address space
+        /* enable byte swapping for disk operations if rom image has swapped byte order
+        affects only reading to ROM address space */
         bi_wr_swap(1);
     }
 
-    //warning! file can be read directly to rom but not to bram
+    /* warning! file can be read directly to rom but not to bram */
     resp = f_read(&f, (void *) BI_ADDR_ROM, fsize, &br);
     if (resp)return resp;
 

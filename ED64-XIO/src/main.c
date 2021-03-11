@@ -21,7 +21,7 @@ int main(void) {
     gConsPrint("FAT init...");
     gRepaint();
 
-    //mount disk
+    /* mount disk */
     memset(&fs, 0, sizeof (fs));
     resp = f_mount(&fs, "", 1);
     if (resp)printError(resp);
@@ -86,38 +86,38 @@ u8 demoMenu() {
 
         if (!cd.c[0].A)continue;
 
-        //browse files in root dir and launch the game
+        /* browse files in root dir and launch the ROM */
         if (selector == MENU_FILE_MANAGER) {
             resp = fmanager();
             if (resp)return resp;
         }
 
 
-        //read data from file
+        /* read data from file */
         if (selector == MENU_FILE_READ) {
             resp = fileRead();
             if (resp)return resp;
         }
 
-        //write string to the test.txt file
+        /* write string to the test.txt file */
         if (selector == MENU_FILE_WRITE) {
             resp = fileWrite();
             if (resp)return resp;
         }
 
-        //simple communication via USB. receive and transmit strings. 
-        //Send some strings via virtual COM port and they will be printed on screen.
-        //string length should be multiple of 4
+        /* Simple communication via USB. receive and transmit strings. 
+        Send some strings via virtual COM port and they will be printed on screen.
+        String length should be multiple of 4 */
         if (selector == MENU_USB_TERMINAL) {
             usb_terminal();
         }
 
-        //usb client demo compatible with usb64.exe
+        /* usb client demo compatible with usb64.exe */
         if (selector == MENU_USB_LOADER) {
             usb_load_rom();
         }
 
-        //everdrive hardware identification
+        /* everdrive hardware identification */
         if (selector == MENU_EDID) {
             edid();
         }
@@ -191,7 +191,7 @@ void boot_simulator(u8 cic) {
     cheats_on = 0;
 
 
-    // Start game via CIC boot code
+    /*  Start ROM via CIC boot code */
     asm __volatile__(
             ".set noreorder;"
 

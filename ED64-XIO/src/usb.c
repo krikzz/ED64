@@ -31,12 +31,13 @@ void usb_terminal() {
 
         if (!bi_usb_can_rd())continue;
 
-        //read from virtual serial port.
-        //size must be a multiple of 4. use 512B blocks for best performance 
+        /* read from virtual serial port. 
+        Size must be a multiple of 4. 
+        Use 512B blocks for best performance */
         tout = bi_usb_rd(data, 4);
         if (tout)continue;
 
-        //send echo string back to the serial port
+        /* Send echo string back to the serial port */
         bi_usb_wr(data, 4);
 
         gConsPrint(data);
@@ -74,23 +75,23 @@ void usb_load_rom() {
         if (cmd[2] != 'd')continue;
         usb_cmd = cmd[3];
 
-        //host send this command during the everdrive seek
+        /* Host send this command during the everdrive seek */
         if (usb_cmd == 't') {
             usb_cmd_resp(0);
         }
 
         //start the game
         if (usb_cmd == 's') {
-            bi_game_cfg_set(SAVE_EEP16K); //set save type
-            boot_simulator(CIC_6102); //run the game
+            bi_game_cfg_set(SAVE_EEP16K); /* set save type */
+            boot_simulator(CIC_6102); /* run the ROM */
         }
 
-        //fill ro memory. used if rom size less than 2MB (required for correct crc values)
+        /* Fill ro memory. Used if ROM size less than 2MB (required for correct crc values) */
         if (usb_cmd == 'c') {
             usb_cmd_cmem_fill(cmd);
         }
 
-        //write to ROM memory
+        /* write to ROM memory */
         if (usb_cmd == 'W') {
             usb_cmd_rom_wr(cmd);
         }
@@ -132,19 +133,19 @@ u8 usb_cmd_rom_wr(u8 *cmd) {
 
     u8 resp;
     u8 buff[512];
-    u32 addr = *(u32 *) & cmd[4]; //destination address
-    u32 slen = *(u32 *) & cmd[8]; //size in sectors (512B)
+    u32 addr = *(u32 *) & cmd[4]; /* destination address */
+    u32 slen = *(u32 *) & cmd[8]; /* size in sectors (512B) */
 
     if (slen == 0)return 0;
 
-    bi_usb_rd_start(); //begin first block receiving (512B)
+    bi_usb_rd_start(); /* begin first block receiving (512B) */
 
     while (slen--) {
 
-        resp = bi_usb_rd_end(buff); //wait for block receiving completion and read it to the buffer
-        if (slen != 0)bi_usb_rd_start(); //begin next block receiving while previous block transfers to the ROM
+        resp = bi_usb_rd_end(buff); /* wait for block receiving completion and read it to the buffer */
+        if (slen != 0)bi_usb_rd_start(); /* begin next block receiving while previous block transfers to the ROM */
         if (resp)return resp;
-        sysPI_wr(buff, addr, 512); //copy received block to the rom memory
+        sysPI_wr(buff, addr, 512); /* copy received block to the rom memory */
         addr += 512;
     }
 
