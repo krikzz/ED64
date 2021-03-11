@@ -8,6 +8,11 @@
 #ifndef BIOS_H
 #define	BIOS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "sys.h"
 
 #define BI_SIZE_ROM     0x4000000       //rom size
@@ -76,6 +81,8 @@ void bi_game_cfg_set(u8 type); //set save type
 void bi_wr_swap(u8 swap_on);
 u32 bi_get_cart_id();
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* BIOS_H */

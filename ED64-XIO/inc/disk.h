@@ -5,8 +5,12 @@
  * Created on September 11, 2020, 7:00 PM
  */
 
-#ifndef DISK_H
-#define	DISK_H
+#ifndef SD_DISK_H
+#define	SD_DISK_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define DISK_ERR_INIT   0xD0
@@ -22,7 +26,10 @@ u8 sd_disk_read_to_rom(u32 sd_addr, u32 dst, u16 slen);
 u8 sd_disk_read(void *dst, u32 saddr, u32 slen);
 u8 sd_disk_write(void *src, u32 saddr, u32 slen);
 u8 sd_disk_close_rw();
-u8 diskStop();
+//u8 diskStop();
 
+#ifdef __cplusplus
+}
+#endif
 
-#endif	/* DISK_H */
+#endif	/* SD_DISK_H */

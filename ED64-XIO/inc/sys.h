@@ -8,6 +8,9 @@
 #ifndef SYS_H
 #define	SYS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 #define u8 unsigned char
@@ -148,5 +151,9 @@ void gAppendHex32(u32 val);
 void gAppendHex32(u32 val);
 void gRepaint();
 void gVsync();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* SYS_H */

@@ -8,6 +8,11 @@
 #ifndef EVERDRIVE_H
 #define	EVERDRIVE_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include "sys.h"
 #include "bios.h"
 #include "disk.h"
@@ -19,5 +24,9 @@ void usbTerminal();
 void usbLoadGame();
 u8 fileRead();
 u8 fileWrite();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif	/* EVERDRIVE_H */
