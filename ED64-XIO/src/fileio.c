@@ -14,8 +14,8 @@ u8 fileRead() {
     UINT br;
     u8 resp;
 
-    gCleanScreen();
-    gRepaint();
+    screen_clear();
+    screen_repaint();
 
 
     resp = f_open(&f, path, FA_READ);
@@ -28,23 +28,23 @@ u8 fileRead() {
     if (resp)return resp;
 
 
-    gCleanScreen();
-    gConsPrint("Read 256 bytes from file: ");
-    gConsPrint("\"SD:\\");
-    gAppendString(path);
-    gAppendString("\"");
-    gConsPrint("");
-    gConsPrint("");
+    screen_clear();
+    screen_print("Read 256 bytes from file: ");
+    screen_print("\"SD:\\");
+    screen_append_str_print(path);
+    screen_append_str_print("\"");
+    screen_print("");
+    screen_print("");
     for (int i = 0; i < sizeof (buff); i++) {
-        if (i % 16 == 0)gConsPrint("");
-        gAppendHex8(buff[i]);
+        if (i % 16 == 0)screen_print("");
+        screen_append_hex8_print(buff[i]);
     }
-    gConsPrint("");
-    gConsPrint("");
-    gConsPrint("Press (B) to exit");
+    screen_print("");
+    screen_print("");
+    screen_print("Press (B) to exit");
 
 
-    gRepaint();
+    screen_repaint();
     while (1) {
         gVsync();
         controller_scan();
@@ -68,8 +68,8 @@ u8 fileWrite() {
     u8 resp;
     u32 str_len;
 
-    gCleanScreen();
-    gRepaint();
+    screen_clear();
+    screen_repaint();
 
     for (str_len = 0; msg[str_len] != 0; str_len++);
 
@@ -83,24 +83,24 @@ u8 fileWrite() {
     if (resp)return resp;
 
 
-    gCleanScreen();
-    gConsPrint("Sucessfully written the text: ");
-    gConsPrint("");
-    gConsPrint("\"");
-    gAppendString(msg);
-    gAppendString("\"");
-    gConsPrint("");
-    gConsPrint("");
-    gConsPrint("To the file: ");
-    gConsPrint("\"SD:\\");
-    gAppendString(path);
-    gAppendString("\"");
-    gConsPrint("");
-    gConsPrint("");
-    gConsPrint("");
-    gConsPrint("Press (B) to exit");
+    screen_clear();
+    screen_print("Sucessfully written the text: ");
+    screen_print("");
+    screen_print("\"");
+    screen_append_str_print(msg);
+    screen_append_str_print("\"");
+    screen_print("");
+    screen_print("");
+    screen_print("To the file: ");
+    screen_print("\"SD:\\");
+    screen_append_str_print(path);
+    screen_append_str_print("\"");
+    screen_print("");
+    screen_print("");
+    screen_print("");
+    screen_print("Press (B) to exit");
 
-    gRepaint();
+    screen_repaint();
     while (1) {
         gVsync();
         controller_scan();

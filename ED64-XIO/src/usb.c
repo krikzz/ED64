@@ -15,14 +15,14 @@ void usb_terminal() {
     u8 tout;
     struct controller_data cd;
 
-    gCleanScreen();
-    gConsPrint("USB COM terminal demo");
-    gConsPrint("");
-    gConsPrint("Waiting to receive data...");
-    gConsPrint("");
-    gConsPrint("");
-    gConsPrint("Press (B) to exit");
-    gRepaint();
+    screen_clear();
+    screen_print("USB COM terminal demo");
+    screen_print("");
+    screen_print("Waiting to receive data...");
+    screen_print("");
+    screen_print("");
+    screen_print("Press (B) to exit");
+    screen_repaint();
 
     data[4] = 1;
 
@@ -44,8 +44,8 @@ void usb_terminal() {
         /* Send echo string back to the serial port */
         bi_usb_wr(data, 4);
 
-        gConsPrint(data);
-        gRepaint();
+        screen_print(data);
+        screen_repaint();
     }
 }
 
@@ -55,10 +55,10 @@ void usb_load_rom() {
     u8 cmd[16];
     struct controller_data cd;
 
-    gCleanScreen();
-    gConsPrint("Waiting for ROM data...");
-    gConsPrint("Press (B) to exit");
-    gRepaint();
+    screen_clear();
+    screen_print("Waiting for ROM data...");
+    screen_print("Press (B) to exit");
+    screen_repaint();
 
     while (1) {
 

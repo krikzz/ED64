@@ -26,16 +26,16 @@ u8 fmanager() {
     while (1) {
 
         /* print items */
-        gCleanScreen();
+        screen_clear();
         for (int i = 0; i < MAX_DIR_SIZE && inf[i].fname[0]; i++) {
-            gConsPrint(selector == i ? ">" : " ");
+            screen_print(selector == i ? ">" : " ");
             u8 tmp = inf[i].fname[MAX_STR_LEN];
             inf[i].fname[MAX_STR_LEN] = 0; /* make sure that the printed string doesn't exceed max len */
-            gAppendString(inf[i].fname);
+            screen_append_str_print(inf[i].fname);
             inf[i].fname[MAX_STR_LEN] = tmp;
         }
 
-        gRepaint();
+        screen_repaint();
 
         /* controls */
         while (1) {
@@ -58,9 +58,9 @@ u8 fmanager() {
 
             if (cd.c[0].A && !(inf[selector].fattrib & AM_DIR)) {
 
-                gCleanScreen();
-                gConsPrint("loading...");
-                gRepaint();
+                screen_clear();
+                screen_print("loading...");
+                screen_repaint();
 
                 resp = fmLoadGame(inf[selector].fname);
                 if (resp)return resp;

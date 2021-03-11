@@ -17,9 +17,9 @@ int main(void) {
     sysInit();
     bi_init();
 
-    gCleanScreen();
-    gConsPrint("FATFS initilizing...");
-    gRepaint();
+    screen_clear();
+    screen_print("FATFS initilizing...");
+    screen_repaint();
 
     /* mount disk */
     memset(&fs, 0, sizeof (fs));
@@ -60,19 +60,19 @@ u8 main_display_menu() {
 
     while (1) {
 
-        gCleanScreen();
+        screen_clear();
 
         for (int i = 0; i < MENU_SIZE; i++) {
-            gConsPrint("  ");
+            screen_print("  ");
             if (i == selector) {
-                gAppendString(">");
+                screen_append_str_print(">");
             } else {
-                gAppendString(" ");
+                screen_append_str_print(" ");
             }
-            gAppendString(menu[i]);
+            screen_append_str_print(menu[i]);
         }
 
-        gRepaint();
+        screen_repaint();
         controller_scan();
         cd = get_keys_down();
 
@@ -130,33 +130,33 @@ void main_display_edid() {
     struct controller_data cd;
     u32 id = bi_get_cart_id();
 
-    gCleanScreen();
-    gConsPrint("ED64 H/W Rev ID:   ");
-    gAppendHex32(id);
-    gConsPrint("ED64 H/W Rev Name: ");
+    screen_clear();
+    screen_print("ED64 H/W Rev ID:   ");
+    screen_append_hex32_print(id);
+    screen_print("ED64 H/W Rev Name: ");
 
     switch (id) {
         case CART_ID_V2:
-            gAppendString("EverDrive 64 V2.5");
+            screen_append_str_print("EverDrive 64 V2.5");
             break;
         case CART_ID_V3:
-            gAppendString("EverDrive 64 V3");
+            screen_append_str_print("EverDrive 64 V3");
             break;
         case CART_ID_X7:
-            gAppendString("EverDrive 64 X7");
+            screen_append_str_print("EverDrive 64 X7");
             break;
         case CART_ID_X5:
-            gAppendString("EverDrive 64 X5");
+            screen_append_str_print("EverDrive 64 X5");
             break;
         default:
-            gAppendString("Unknown");
+            screen_append_str_print("Unknown");
             break;
     }
 
 
-    gConsPrint("");
-    gConsPrint("Press (B) to exit");
-    gRepaint();
+    screen_print("");
+    screen_print("Press (B) to exit");
+    screen_repaint();
     while (1) {
         gVsync();
         controller_scan();
@@ -172,10 +172,10 @@ void main_display_edid() {
 
 void main_display_error(u8 err) {
 
-    gCleanScreen();
-    gConsPrint("error: ");
-    gAppendHex8(err);
-    gRepaint();
+    screen_clear();
+    screen_print("error: ");
+    screen_append_hex8_print(err);
+    screen_repaint();
 
     while (1);
 }

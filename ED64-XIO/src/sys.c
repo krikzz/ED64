@@ -236,7 +236,7 @@ void gDrawChar8X8(u32 val, u32 x, u32 y) {
     }
 }
 
-void gRepaint() {
+void screen_repaint() {
 
     u16 *chr_ptr = gfx_buff;
 
@@ -264,9 +264,9 @@ void gVsync() {
 }
 
 
-void gAppendHex4(u8 val);
+void screen_append_hex4_print(u8 val);
 
-void gCleanScreen() {
+void screen_clear() {
 
     g_cur_pal = 0;
     gSetXY(G_BORDER_X, G_BORDER_Y);
@@ -278,7 +278,7 @@ void gSetPal(u16 pal) {
     g_cur_pal = pal;
 }
 
-void gAppendString(u8 *str) {
+void screen_append_str_print(u8 *str) {
     while (*str != 0)*g_disp_ptr++ = *str++ + g_cur_pal;
 }
 
@@ -287,28 +287,28 @@ void gAppendChar(u8 chr) {
     *g_disp_ptr++ = chr + g_cur_pal;
 }
 
-void gAppendHex4(u8 val) {
+void screen_append_hex4_print(u8 val) {
 
     val += (val < 10 ? '0' : '7');
     *g_disp_ptr++ = val + g_cur_pal;
 }
 
-void gAppendHex8(u8 val) {
+void screen_append_hex8_print(u8 val) {
 
-    gAppendHex4(val >> 4);
-    gAppendHex4(val & 15);
+    screen_append_hex4_print(val >> 4);
+    screen_append_hex4_print(val & 15);
 }
 
-void gAppendHex16(u16 val) {
+void screen_append_hex16_print(u16 val) {
 
-    gAppendHex8(val >> 8);
-    gAppendHex8(val);
+    screen_append_hex8_print(val >> 8);
+    screen_append_hex8_print(val);
 }
 
-void gAppendHex32(u32 val) {
+void screen_append_hex32_print(u32 val) {
 
-    gAppendHex16(val >> 16);
-    gAppendHex16(val);
+    screen_append_hex16_print(val >> 16);
+    screen_append_hex16_print(val);
 
 }
 
@@ -320,10 +320,10 @@ void gSetXY(u8 x, u8 y) {
     g_last_y = y;
 }
 
-void gConsPrint(u8 *str) {
+void screen_print(u8 *str) {
 
     g_disp_ptr = &gfx_buff[g_cons_ptr];
     g_cons_ptr += G_SCREEN_W;
     g_last_y++;
-    gAppendString(str);
+    screen_append_str_print(str);
 }
