@@ -17,7 +17,7 @@ void usb_terminal() {
 
     gCleanScreen();
     gConsPrint("USB COM terminal demo");
-    gConsPrint("Press B to exit");
+    gConsPrint("Press 'B' to exit");
     gRepaint();
 
     data[4] = 1;
@@ -52,8 +52,8 @@ void usb_load_rom() {
     struct controller_data cd;
 
     gCleanScreen();
-    gConsPrint("Waiting for game data...");
-    gConsPrint("Press B to exit");
+    gConsPrint("Waiting for ROM data...");
+    gConsPrint("Press 'B' to exit");
     gRepaint();
 
     while (1) {

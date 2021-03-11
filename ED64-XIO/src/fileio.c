@@ -31,7 +31,7 @@ u8 fileRead() {
     gCleanScreen();
     gConsPrint("Data readed from: ");
     gAppendString(path);
-    gConsPrint("Press B to exit");
+    gConsPrint("Press 'B' to exit");
 
     gConsPrint("");
     for (int i = 0; i < sizeof (buff); i++) {
@@ -80,11 +80,14 @@ u8 fileWrite() {
 
 
     gCleanScreen();
+    gConsPrint("The String: ");
     gConsPrint(msg);
     gConsPrint("");
-    gConsPrint("String above was written to the ");
+    gConsPrint("Was written to the file: ");
     gConsPrint(path);
-    gConsPrint("Press B to exit");
+    gConsPrint("");
+    gConsPrint("");
+    gConsPrint("Press 'B' to exit");
 
     gRepaint();
     while (1) {

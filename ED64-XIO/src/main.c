@@ -51,9 +51,9 @@ u8 demoMenu() {
     u32 selector = 0;
     u8 resp;
 
-    menu[MENU_FILE_MANAGER] = "File Manager";
-    menu[MENU_FILE_READ] = "File Read";
-    menu[MENU_FILE_WRITE] = "File Write";
+    menu[MENU_FILE_MANAGER] = "File Explorer";
+    menu[MENU_FILE_READ] = "File Read (ED64/OS64.v64)";
+    menu[MENU_FILE_WRITE] = "File Write (test.txt)";
     menu[MENU_USB_TERMINAL] = "USB Terminal";
     menu[MENU_USB_LOADER] = "USB ROM Loader";
     menu[MENU_EDID] = "ED64 Hardware Rev ID";
@@ -131,10 +131,10 @@ void edid() {
     u32 id = bi_get_cart_id();
 
     gCleanScreen();
-    gConsPrint("Device ID     ");
+    gConsPrint("ED64 Rev ID:  ");
     gAppendHex32(id);
     gConsPrint("");
-    gConsPrint("Device Name   ");
+    gConsPrint("ED64 Name:    ");
 
     switch (id) {
         case CART_ID_V2:
@@ -156,7 +156,7 @@ void edid() {
 
 
     gConsPrint("");
-    gConsPrint("Press B to exit");
+    gConsPrint("Press 'B' to exit");
     gRepaint();
     while (1) {
         gVsync();
