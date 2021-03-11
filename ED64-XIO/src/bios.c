@@ -96,22 +96,22 @@ u16 bi_sd_cfg;
 
 void bi_init() {
 
-    //setup n64 bus timings for better performance
+    /* setup n64 bus timings for better performance */
     IO_WRITE(PI_BSD_DOM1_LAT_REG, 0x04);
     IO_WRITE(PI_BSD_DOM1_PWD_REG, 0x0C);
 
-    //unlock regs
+    /* unlock regs */
     bi_reg_wr(REG_KEY, 0xAA55);
 
     bi_reg_wr(REG_SYS_CFG, 0);
 
-    //flush usb 
+    /* flush usb */
     bi_usb_init();
 
     bi_sd_cfg = 0;
     bi_reg_wr(REG_SD_STATUS, bi_sd_cfg);
 
-    //turn off backup ram
+    /* turn off backup ram */
     bi_game_cfg_set(SAVE_OFF);
 }
 
@@ -131,9 +131,9 @@ void bi_usb_init() {
 
     u8 buff[512];
     u8 resp;
-    bi_reg_wr(REG_USB_CFG, USB_CMD_RD_NOP); //turn off usb r/w activity
+    bi_reg_wr(REG_USB_CFG, USB_CMD_RD_NOP); /* turn off usb r/w activity */
 
-    //flush fifo buffer
+    /* flush fifo buffer */
     while (bi_usb_can_rd()) {
         resp = bi_usb_rd(buff, 512);
         if (resp)break;
@@ -175,17 +175,17 @@ u8 bi_usb_rd(void *dst, u32 len) {
 
     while (len) {
 
-        blen = 512; //rx block len
+        blen = 512; /* rx block len */
         if (blen > len)blen = len;
-        baddr = 512 - blen; //address in fpga internal buffer. requested data length equal to 512-int buffer addr
+        baddr = 512 - blen; /* address in fpga internal buffer. requested data length equal to 512-int buffer addr */
 
 
-        bi_reg_wr(REG_USB_CFG, USB_CMD_RD | baddr); //usb read request. fpga will receive usb bytes until the buffer address reaches 512
+        bi_reg_wr(REG_USB_CFG, USB_CMD_RD | baddr); /* usb read request. fpga will receive usb bytes until the buffer address reaches 512 */
 
-        resp = bi_usb_busy(); //wait until requested data amount will be transferred to the internal buffer
-        if (resp)break; //timeout
+        resp = bi_usb_busy(); /* wait until requested data amount will be transferred to the internal buffer */
+        if (resp)break; /* timeout */
 
-        sysPI_rd(dst, REG_ADDR(REG_USB_DAT + baddr), blen); //get data from internal buffer
+        sysPI_rd(dst, REG_ADDR(REG_USB_DAT + baddr), blen); /* get data from internal buffer */
 
         dst += blen;
         len -= blen;
@@ -203,17 +203,17 @@ u8 bi_usb_wr(void *src, u32 len) {
 
     while (len) {
 
-        blen = 512; //tx block len
+        blen = 512; /* tx block len */
         if (blen > len)blen = len;
-        baddr = 512 - blen; //address in fpga internal buffer. data length equal to 512-int buffer addr
+        baddr = 512 - blen; /* address in fpga internal buffer. data length equal to 512-int buffer addr */
 
-        sysPI_wr(src, REG_ADDR(REG_USB_DAT + baddr), blen); //copy data to the internal buffer
+        sysPI_wr(src, REG_ADDR(REG_USB_DAT + baddr), blen); /* copy data to the internal buffer */
         src += 512;
 
-        bi_reg_wr(REG_USB_CFG, USB_CMD_WR | baddr); //usb write request
+        bi_reg_wr(REG_USB_CFG, USB_CMD_WR | baddr); /* usb write request */
 
-        resp = bi_usb_busy(); //wait until the requested data amount is transferred
-        if (resp)break; //timeout
+        resp = bi_usb_busy(); /* wait until the requested data amount is transferred */
+        if (resp)break; /* timeout */
 
         len -= blen;
     }
@@ -235,9 +235,9 @@ u8 bi_usb_rd_end(void *dst) {
 
     return 0;
 }
-//****************************************************************************** sdio
 //******************************************************************************
-//******************************************************************************
+// sdio
+//******************************************************************************/
 void sdCrc16(void *src, u16 *crc_out);
 
 void bi_sd_speed(u8 speed) {
@@ -251,7 +251,7 @@ void bi_sd_speed(u8 speed) {
     bi_reg_wr(REG_SD_STATUS, bi_sd_cfg);
 }
 u16 bi_old_sd_mode;
-//this function gives time for setting stable values on open bus
+/* this function gives time for setting stable values on open bus */
 
 void bi_sd_switch_mode(u16 mode) {
 
@@ -390,7 +390,7 @@ u8 bi_ram_to_sd(void *src, u16 slen) {
 
         resp &= 7;
         if (resp != 0x02) {
-            if (resp == 5)return 2; //crc error
+            if (resp == 5)return 2; /* crc error */
             return 3;
         }
 
@@ -534,14 +534,14 @@ void sdCrc16(void *src, u16 *crc_out) {
 
 }
 
-//******************************************************************************
+//******************************************************************************/
 
 void bi_game_cfg_set(u8 type) {
 
     bi_reg_wr(REG_GAM_CFG, type);
 }
 
-//swaps bytes copied from SD card. only affects reads to ROM area
+/* swaps bytes copied from SD card. only affects reads to ROM area */
 void bi_wr_swap(u8 swap_on) {
 
     if (swap_on) {
