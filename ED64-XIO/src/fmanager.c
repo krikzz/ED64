@@ -23,7 +23,7 @@ u8 fmanager_display() {
     if (resp)return resp;
 
 
-    while (1) {
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
 
         /* print items */
         screen_clear();
@@ -38,7 +38,7 @@ u8 fmanager_display() {
         screen_repaint();
 
         /* controls */
-        while (1) {
+        for ( ;; ) { /* forever [equivalent to: "while (1)"] */
 
             screen_vsync();
             controller_scan();
@@ -65,7 +65,7 @@ u8 fmanager_display() {
                 resp = fm_load_rom(inf[selector].fname);
                 if (resp)return resp;
 
-                bi_game_cfg_set(SAVE_EEP16K); /* set save type */
+                ed64_bios_rom_savetype_set(ED64_SAVE_EEP16K); /* set save type */
                 rom_boot_simulator(CIC_6102); /* run the ROM */
             }
         }
@@ -120,14 +120,14 @@ u8 fm_load_rom(u8 *path) {
     if (header[1] == 0x80) {
         /* enable byte swapping for disk operations if rom image has swapped byte order
         affects only reading to ROM address space */
-        bi_wr_swap(1);
+        ed64_bios_write_endian_swap(1);
     }
 
     /* warning! file can be read directly to rom but not to bram */
-    resp = f_read(&f, (void *) BI_ADDR_ROM, fsize, &br);
+    resp = f_read(&f, (void *) ED64_ADDR_ROM, fsize, &br);
     if (resp)return resp;
 
-    bi_wr_swap(0);
+    ed64_bios_write_endian_swap(0);
     if (resp)return resp;
 
     resp = f_close(&f);

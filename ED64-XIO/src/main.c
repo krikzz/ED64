@@ -14,8 +14,8 @@ int main(void) {
     u8 resp;
     FATFS fs;
 
-    sysInit();
-    bi_init();
+    sys_n64_init();
+    ed64_bios_init();
 
     screen_clear();
     screen_print("File system initilizing...");
@@ -27,7 +27,7 @@ int main(void) {
     if (resp)main_display_error(resp);
 
 
-    while (1) {
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
         resp = main_display_menu();
         if (resp)main_display_error(resp);
     }
@@ -58,7 +58,7 @@ u8 main_display_menu() {
     menu[MENU_USB_LOADER] = "USB ROM Loader";
     menu[MENU_EDID] = "ED64 Hardware Rev ID";
 
-    while (1) {
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
 
         screen_clear();
 
@@ -95,13 +95,13 @@ u8 main_display_menu() {
 
         /* read data from file */
         if (selector == MENU_FILE_READ) {
-            resp = fileRead();
+            resp = fm_file_read();
             if (resp)return resp;
         }
 
         /* write string to the test.txt file */
         if (selector == MENU_FILE_WRITE) {
-            resp = fileWrite();
+            resp = fm_file_write();
             if (resp)return resp;
         }
 
@@ -128,7 +128,7 @@ u8 main_display_menu() {
 void main_display_edid() {
 
     struct controller_data cd;
-    u32 id = bi_get_cart_id();
+    u32 id = ed64_bios_get_cart_id();
 
     screen_clear();
     screen_print("ED64 H/W Rev ID:   ");
@@ -136,16 +136,16 @@ void main_display_edid() {
     screen_print("ED64 H/W Rev Name: ");
 
     switch (id) {
-        case CART_ID_V2:
+        case ED64_CART_ID_V2:
             screen_append_str_print("EverDrive 64 V2.5");
             break;
-        case CART_ID_V3:
+        case ED64_CART_ID_V3:
             screen_append_str_print("EverDrive 64 V3");
             break;
-        case CART_ID_X7:
+        case ED64_CART_ID_X7:
             screen_append_str_print("EverDrive 64 X7");
             break;
-        case CART_ID_X5:
+        case ED64_CART_ID_X5:
             screen_append_str_print("EverDrive 64 X5");
             break;
         default:
@@ -157,7 +157,7 @@ void main_display_edid() {
     screen_print("");
     screen_print("Press (B) to exit");
     screen_repaint();
-    while (1) {
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
         screen_vsync();
         controller_scan();
         cd = get_keys_down();
@@ -184,9 +184,9 @@ void rom_boot_simulator(u8 cic) {
 
 
     static u16 cheats_on; /* 0 = off, 1 = select, 2 = all */
-    static u8 game_cic;
+    static u8 rom_cic;
 
-    game_cic = cic;
+    rom_cic = cic;
     cheats_on = 0;
 
 
@@ -296,7 +296,7 @@ void rom_boot_simulator(u8 cic) {
             "lui    $t3, 0xB000;"
 
             : // outputs
-            : "r" (game_cic), // inputs
+            : "r" (rom_cic), // inputs
             "r" (cheats_on)
             : "$4", "$5", "$6", "$8", // clobber
             "$11", "$19", "$20", "$21",

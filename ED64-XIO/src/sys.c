@@ -63,7 +63,7 @@ const u32 pal_320[] = {
 #define SYS_MAX_PIXEL_W   320
 #define SYS_MAX_PIXEL_H   240
 
-void sysDisplayInit();
+void sys_n64_region_init();
 void sysPI_rd_safe(void *ram, unsigned long pi_address, unsigned long len);
 void sysPI_wr_safe(void *ram, unsigned long pi_address, unsigned long len);
 
@@ -84,7 +84,7 @@ u16 pal[16] = {
     0x0000, 0x0000, 0x0000, 0x0aa0
 };
 
-void sysInit() {
+void sys_n64_init() {
 
     disable_interrupts();
     set_AI_interrupt(0);
@@ -119,11 +119,11 @@ void sysInit() {
     screen.current = screen.buff[screen.buff_sw];
     screen.bgr_ptr = 0;
 
-    sysDisplayInit();
+    sys_n64_region_init();
 
 }
 
-void sysDisplayInit() {
+void sys_n64_region_init() {
 
     u32 i;
     u32 *v_setup;
@@ -158,7 +158,7 @@ void sysDisplayInit() {
     enable_interrupts();
 }
 
-void sysPI_rd(void *ram, unsigned long pi_address, unsigned long len) {
+void sys_n64_pi_read(void *ram, unsigned long pi_address, unsigned long len) {
 
     pi_address &= 0x1FFFFFFF;
 
@@ -175,7 +175,7 @@ void sysPI_rd(void *ram, unsigned long pi_address, unsigned long len) {
     enable_interrupts();
 }
 
-void sysPI_wr(void *ram, unsigned long pi_address, unsigned long len) {
+void sys_n64_pi_write(void *ram, unsigned long pi_address, unsigned long len) {
 
     pi_address &= 0x1FFFFFFF;
 
@@ -193,15 +193,17 @@ void sysPI_wr(void *ram, unsigned long pi_address, unsigned long len) {
 
 }
 
-//****************************************************************************** gfx
-u16 *g_disp_ptr;
-u16 g_cur_pal;
-u16 g_cons_ptr;
-u8 g_last_x;
-u8 g_last_y;
-u16 gfx_buff[G_SCREEN_W * G_SCREEN_H];
+/****************************************************************************** 
+ * graphics
+******************************************************************************/
+u16 *screen_display_ptr;
+u16 screen_cur_pal;
+u16 screen_cons_ptr;
+u8 screen_last_x;
+u8 screen_last_y;
+u16 gfx_buff[TV_SCREEN_W * TV_SCREEN_H];
 
-void gDrawChar8X8(u32 val, u32 x, u32 y) {
+void screen_draw_char_8X8(u32 val, u32 x, u32 y) {
 
     u64 tmp;
     u32 font_val;
@@ -247,7 +249,7 @@ void screen_repaint() {
     for (u32 y = 0; y < screen.h; y++) {
         for (u32 x = 0; x < screen.w; x++) {
 
-            gDrawChar8X8(*chr_ptr++, x, y);
+            screen_draw_char_8X8(*chr_ptr++, x, y);
         }
     }
 
@@ -268,29 +270,29 @@ void screen_append_hex4_print(u8 val);
 
 void screen_clear() {
 
-    g_cur_pal = 0;
+    screen_cur_pal = 0;
     screen_set_xy_pos(G_BORDER_X, G_BORDER_Y);
-    for (int i = 0; i < G_SCREEN_W * G_SCREEN_H; i++)gfx_buff[i] = PAL_B3;
-    screen_set_pal(PAL_B1);
+    for (int i = 0; i < TV_SCREEN_W * TV_SCREEN_H; i++)gfx_buff[i] = REGION_PAL_B3;
+    screen_set_pal(REGION_PAL_B1);
 }
 
 void screen_set_pal(u16 pal) {
-    g_cur_pal = pal;
+    screen_cur_pal = pal;
 }
 
 void screen_append_str_print(u8 *str) {
-    while (*str != 0)*g_disp_ptr++ = *str++ + g_cur_pal;
+    while (*str != 0)*screen_display_ptr++ = *str++ + screen_cur_pal;
 }
 
 void screen_append_char_print(u8 chr) {
 
-    *g_disp_ptr++ = chr + g_cur_pal;
+    *screen_display_ptr++ = chr + screen_cur_pal;
 }
 
 void screen_append_hex4_print(u8 val) {
 
     val += (val < 10 ? '0' : '7');
-    *g_disp_ptr++ = val + g_cur_pal;
+    *screen_display_ptr++ = val + screen_cur_pal;
 }
 
 void screen_append_hex8_print(u8 val) {
@@ -314,16 +316,16 @@ void screen_append_hex32_print(u32 val) {
 
 void screen_set_xy_pos(u8 x, u8 y) {
 
-    g_cons_ptr = x + y * G_SCREEN_W;
-    g_disp_ptr = &gfx_buff[g_cons_ptr];
-    g_last_x = x;
-    g_last_y = y;
+    screen_cons_ptr = x + y * TV_SCREEN_W;
+    screen_display_ptr = &gfx_buff[screen_cons_ptr];
+    screen_last_x = x;
+    screen_last_y = y;
 }
 
 void screen_print(u8 *str) {
 
-    g_disp_ptr = &gfx_buff[g_cons_ptr];
-    g_cons_ptr += G_SCREEN_W;
-    g_last_y++;
+    screen_display_ptr = &gfx_buff[screen_cons_ptr];
+    screen_cons_ptr += TV_SCREEN_W;
+    screen_last_y++;
     screen_append_str_print(str);
 }
