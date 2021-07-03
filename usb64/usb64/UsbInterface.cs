@@ -6,7 +6,7 @@ namespace ed64usb
     public static class UsbInterface
     {
 
-        private static SerialPort port;
+        private static SafeSerialPort port;
         public static int ProgressBarTimerInterval { get; set; }
         public static int ProgressBarTimerCounter { get; set; }
 
@@ -92,7 +92,7 @@ namespace ed64usb
 
                 try
                 {
-                    port = new SerialPort(p);
+                    port = new SafeSerialPort(p);
                     port.Open();
                     port.ReadTimeout = 200;
                     port.WriteTimeout = 200;
