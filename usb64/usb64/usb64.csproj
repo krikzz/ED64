@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">netcoreapp3.1;net5.0;net45;net40</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">netcoreapp3.1;net45;net40</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1</TargetFrameworks>
     <Authors>Krikzz / NetworkFusion</Authors>
     <Company>Krikzz</Company>
     <Copyright>Copyright © Krikzz, NetworkFusion 2020-2021</Copyright>
