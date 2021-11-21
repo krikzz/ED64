@@ -1,0 +1,39 @@
+name: Build Linux Usb64 App
+ 
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dotnet: [ 'netcoreapp3.1', 'net5.0' ]
+    name: Build ${{ matrix.dotnet }} usb64 Linux
+    steps:
+      - uses: actions/checkout@v2
+        name: Checkout Code
+     
+      - name: Setup .NET Core 3.1
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.x
+      - name: Setup .NET Core 5.0
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+        
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v1.0.5
+      
+      - name: Restore NuGet Packages
+        run: nuget restore ./usb64/usb64.sln
+  
+      - name: Build App
+        run: dotnet build ./usb64/usb64.sln --configuration Release --no-restore --framework ${{ matrix.dotnet }}
+      #- name: Test App
+      #  run: dotnet test
+  
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: usb64-${{ matrix.dotnet }}-app-linux
+          path: ${{ github.workspace }}/usb64/usb64/bin/Release/${{ matrix.dotnet }}/usb64.dll
