@@ -33,8 +33,6 @@ jobs:
   
       - name: Build App
         run: dotnet build ./usb64/usb64.sln --configuration Release --no-restore --framework ${{ matrix.dotnet }}
-      #- name: Test App
-      #  run: dotnet test
   
       - name: Upload Artifact
         uses: actions/upload-artifact@v1.0.0
