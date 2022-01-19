@@ -35,7 +35,8 @@ jobs:
         run: dotnet build ./usb64/usb64.sln --configuration Release --no-restore --framework ${{ matrix.dotnet }}
   
       - name: Upload Artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: usb64-${{ matrix.dotnet }}-app-linux
-          path: ${{ github.workspace }}/usb64/usb64/bin/Release/${{ matrix.dotnet }}/usb64.dll
+          path: |
+            ${{ github.workspace }}/usb64/usb64/bin/Release/${{ matrix.dotnet }}/usb64.dll
