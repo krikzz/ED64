@@ -1,4 +1,7 @@
-
+/*
+* Copyright (c) Krikzz and Contributors.
+* See LICENSE file in the project root for full license information.
+*/
 
 #include "bios.h"
 
@@ -84,105 +87,163 @@
 
 #define REG_ADDR(reg)   (KSEG1 | REG_BASE | (reg))
 
-u32 bi_reg_rd(u16 reg);
-void bi_reg_wr(u16 reg, u32 val);
-void bi_usb_init();
-u8 bi_usb_busy();
+u32 ed64_bios_register_read(u16 reg);
+void ed64_bios_register_write(u16 reg, u32 val);
+void ed64_bios_usb_init();
+u8 ed64_bios_usb_busy();
 
-u16 bi_sd_cfg;
+u16 ed64_bios_sd_cfg;
 
-void bi_init() {
 
-    //setup n64 bus timings for better performance
+/**
+ * @brief Initializes the ED64 cart
+ *
+ * @return 0 on successful or a other value on failure. (will probably just hang on failure!)
+ */
+void ed64_bios_init() {
+
+    /* setup n64 bus timings for better performance */
     IO_WRITE(PI_BSD_DOM1_LAT_REG, 0x04);
     IO_WRITE(PI_BSD_DOM1_PWD_REG, 0x0C);
 
-    //unlock regs
-    bi_reg_wr(REG_KEY, 0xAA55);
+    /* unlock regs */
+    ed64_bios_register_write(REG_KEY, 0xAA55);
 
-    bi_reg_wr(REG_SYS_CFG, 0);
+    ed64_bios_register_write(REG_SYS_CFG, 0);
 
-    //flush usb 
-    bi_usb_init();
+    /* flush usb */
+    ed64_bios_usb_init();
 
-    bi_sd_cfg = 0;
-    bi_reg_wr(REG_SD_STATUS, bi_sd_cfg);
+    ed64_bios_sd_cfg = 0;
+    ed64_bios_register_write(REG_SD_STATUS, ed64_bios_sd_cfg);
 
-    //turn off backup ram
-    bi_game_cfg_set(SAVE_OFF);
+    /* turn off backup ram */
+    ed64_bios_rom_savetype_set(ED64_SAVE_OFF);
+
+    /* Always successful for now */
+    return 0;
 }
 
-void bi_reg_wr(u16 reg, u32 val) {
+/**
+ * @brief Write a register to the ED64
+ * 
+ * @param[in]  reg
+ *             The register to write to
+ * @param[in]  val
+ *             The value of the register
+ *
+ */
+void ed64_bios_register_write(u16 reg, u32 val) {
 
-    sysPI_wr(&val, REG_ADDR(reg), 4);
+    sys_n64_pi_write(&val, REG_ADDR(reg), 4);
 }
 
-u32 bi_reg_rd(u16 reg) {
+/**
+ * @brief Read a register from the ED64
+ *
+ * @return Value of the register
+ */
+u32 ed64_bios_register_read(u16 reg) {
 
     u32 val;
-    sysPI_rd(&val, REG_ADDR(reg), 4);
+    sys_n64_pi_read(&val, REG_ADDR(reg), 4);
     return val;
 }
 
-void bi_usb_init() {
+
+/******************************************************************************
+* USB functions
+******************************************************************************/
+
+/**
+ * @brief Initialize the USB CDC hardware
+ *
+ * @return 0 on successful or an error value on failure
+ */
+void ed64_bios_usb_init() {
 
     u8 buff[512];
     u8 resp;
-    bi_reg_wr(REG_USB_CFG, USB_CMD_RD_NOP); //turn off usb r/w activity
+    ed64_bios_register_write(REG_USB_CFG, USB_CMD_RD_NOP); /* turn off usb r/w activity */
 
-    //flush fifo buffer
-    while (bi_usb_can_rd()) {
-        resp = bi_usb_rd(buff, 512);
+    /* flush fifo buffer */
+    while (ed64_bios_usb_can_read()) {
+        resp = ed64_bios_usb_read(buff, 512);
         if (resp)break;
     }
 }
 
-u8 bi_usb_can_rd() {
+/**
+ * @brief Checks if USB CDC is available for read
+ *
+ * @return 0 on successful or 1 on failure
+ */
+u8 ed64_bios_usb_can_read() {
 
-    u32 status = bi_reg_rd(REG_USB_CFG) & (USB_STA_PWR | USB_STA_RXF);
+    u32 status = ed64_bios_register_read(REG_USB_CFG) & (USB_STA_PWR | USB_STA_RXF);
     if (status == USB_STA_PWR)return 1;
     return 0;
 }
 
-u8 bi_usb_can_wr() {
+/**
+ * @brief Checks if USB CDC is available for write
+ *
+ * @return 0 on successful or 1 on failure
+ */
+u8 ed64_bios_usb_can_write() {
 
-    u32 status = bi_reg_rd(REG_USB_CFG) & (USB_STA_PWR | USB_STA_TXE);
+    u32 status = ed64_bios_register_read(REG_USB_CFG) & (USB_STA_PWR | USB_STA_TXE);
     if (status == USB_STA_PWR)return 1;
     return 0;
 }
 
-u8 bi_usb_busy() {
+/**
+ * @brief Checks if USB CDC is busy
+ *
+ * @return 0 on successful or other value on failure
+ */
+u8 ed64_bios_usb_busy() {
 
     u32 tout = 0;
 
-    while ((bi_reg_rd(REG_USB_CFG) & USB_STA_ACT) != 0) {
+    while ((ed64_bios_register_read(REG_USB_CFG) & USB_STA_ACT) != 0) {
 
         if (tout++ != 8192)continue;
-        bi_reg_wr(REG_USB_CFG, USB_CMD_RD_NOP);
-        return BI_ERR_USB_TOUT;
+        ed64_bios_register_write(REG_USB_CFG, USB_CMD_RD_NOP);
+        return ED64_ERR_USB_TOUT;
     }
 
     return 0;
 }
 
-u8 bi_usb_rd(void *dst, u32 len) {
+/**
+ * @brief Reads from USB (CDC)
+ *
+ * @param[in]  dst
+ *             Destination pointer to copy to
+ * @param[in]  len
+ *             Length in bytes to copy
+ *
+ * @return 0 on successful or other value on failure
+ */
+u8 ed64_bios_usb_read(void *dst, u32 len) {
 
     u8 resp = 0;
     u16 blen, baddr;
 
     while (len) {
 
-        blen = 512; //rx block len
+        blen = 512; /* rx block len */
         if (blen > len)blen = len;
-        baddr = 512 - blen; //address in fpga internal buffer. requested data length equal to 512-int buffer addr
+        baddr = 512 - blen; /* address in fpga internal buffer. requested data length equal to 512-int buffer addr */
 
 
-        bi_reg_wr(REG_USB_CFG, USB_CMD_RD | baddr); //usb read request. fpga will receive usb bytes until the buffer address reaches 512
+        ed64_bios_register_write(REG_USB_CFG, USB_CMD_RD | baddr); /* usb read request. fpga will receive usb bytes until the buffer address reaches 512 */
 
-        resp = bi_usb_busy(); //wait until requested data amount will be transferred to the internal buffer
-        if (resp)break; //timeout
+        resp = ed64_bios_usb_busy(); /* wait until requested data amount will be transferred to the internal buffer */
+        if (resp)break; /* timeout */
 
-        sysPI_rd(dst, REG_ADDR(REG_USB_DAT + baddr), blen); //get data from internal buffer
+        sys_n64_pi_read(dst, REG_ADDR(REG_USB_DAT + baddr), blen); /* get data from internal buffer */
 
         dst += blen;
         len -= blen;
@@ -191,26 +252,36 @@ u8 bi_usb_rd(void *dst, u32 len) {
     return resp;
 }
 
-u8 bi_usb_wr(void *src, u32 len) {
+/**
+ * @brief Writes to USB (CDC)
+ *
+ * @param[in]  src
+ *             Source pointer to copy from
+ * @param[in]  len
+ *             Length in bytes to copy
+ *
+ * @return 0 on successful or other value on failure
+ */
+u8 ed64_bios_usb_write(void *src, u32 len) {
 
     u8 resp = 0;
     u16 blen, baddr;
 
-    bi_reg_wr(REG_USB_CFG, USB_CMD_WR_NOP);
+    ed64_bios_register_write(REG_USB_CFG, USB_CMD_WR_NOP);
 
     while (len) {
 
-        blen = 512; //tx block len
+        blen = 512; /* tx block len */
         if (blen > len)blen = len;
-        baddr = 512 - blen; //address in fpga internal buffer. data length equal to 512-int buffer addr
+        baddr = 512 - blen; /* address in fpga internal buffer. data length equal to 512-int buffer addr */
 
-        sysPI_wr(src, REG_ADDR(REG_USB_DAT + baddr), blen); //copy data to the internal buffer
+        sys_n64_pi_write(src, REG_ADDR(REG_USB_DAT + baddr), blen); /* copy data to the internal buffer */
         src += 512;
 
-        bi_reg_wr(REG_USB_CFG, USB_CMD_WR | baddr); //usb write request
+        ed64_bios_register_write(REG_USB_CFG, USB_CMD_WR | baddr); /* usb write request */
 
-        resp = bi_usb_busy(); //wait until the requested data amount is transferred
-        if (resp)break; //timeout
+        resp = ed64_bios_usb_busy(); /* wait until the requested data amount is transferred */
+        if (resp)break; /* timeout */
 
         len -= blen;
     }
@@ -218,90 +289,153 @@ u8 bi_usb_wr(void *src, u32 len) {
     return resp;
 }
 
-void bi_usb_rd_start() {
+/**
+ * @brief Starts read from USB (CDC)
+ *
+ */
+void ed64_bios_usb_read_start() {
 
-    bi_reg_wr(REG_USB_CFG, USB_CMD_RD | 512);
+    ed64_bios_register_write(REG_USB_CFG, USB_CMD_RD | 512);
 }
 
-u8 bi_usb_rd_end(void *dst) {
+/**
+ * @brief Ends read from USB (CDC)
+ *
+ * @return 0 on successful or other value on failure
+ */
+u8 ed64_bios_usb_read_end(void *dst) {
 
-    u8 resp = bi_usb_busy();
+    u8 resp = ed64_bios_usb_busy();
     if (resp)return resp;
 
-    sysPI_rd(dst, REG_ADDR(REG_USB_DAT), 512);
+    sys_n64_pi_read(dst, REG_ADDR(REG_USB_DAT), 512);
 
     return 0;
 }
-//****************************************************************************** sdio
-//******************************************************************************
-//******************************************************************************
-void sdCrc16(void *src, u16 *crc_out);
+/******************************************************************************
+* sdio functions
+******************************************************************************/
+void ed64_bios_sd_crc16(void *src, u16 *crc_out);
 
-void bi_sd_speed(u8 speed) {
+/**
+ * @brief Sets the SDIO bus speed
+ *
+ * @param[in]  speed
+ *             the bus speed required
+ */
+void ed64_bios_sdio_speed(u8 speed) {
 
-    if (speed == BI_DISK_SPD_LO) {
-        bi_sd_cfg &= ~SD_CFG_SPD;
+    if (speed == ED64_SDIO_SPEED_LOW) {
+        ed64_bios_sd_cfg &= ~SD_CFG_SPD;
     } else {
-        bi_sd_cfg |= SD_CFG_SPD;
+        ed64_bios_sd_cfg |= SD_CFG_SPD;
     }
 
-    bi_reg_wr(REG_SD_STATUS, bi_sd_cfg);
-}
-u16 bi_old_sd_mode;
-//this function gives time for setting stable values on open bus
-
-void bi_sd_switch_mode(u16 mode) {
-
-    if (bi_old_sd_mode == mode)return;
-    bi_old_sd_mode = mode;
-
-    u16 old_sd_cfg = bi_sd_cfg;
-    bi_sd_bitlen(0);
-    bi_reg_wr(mode, 0xffff);
-    bi_sd_cfg = old_sd_cfg;
-    bi_reg_wr(REG_SD_STATUS, old_sd_cfg);
+    ed64_bios_register_write(REG_SD_STATUS, ed64_bios_sd_cfg);
 }
 
-void bi_sd_bitlen(u8 val) {
+/**
+ * @brief Depricated: gives time for setting stable values on open bus
+ *
+ */
+u16 ed64_bios_old_sd_mode;
 
-    bi_sd_cfg &= ~SD_CFG_BITLEN;
-    bi_sd_cfg |= (val & SD_CFG_BITLEN);
-    bi_reg_wr(REG_SD_STATUS, bi_sd_cfg);
+/**
+ * @brief Switches the SDIO speed
+ * 
+ * @param[in]  mode
+ *             LOW or High
+ *
+ */
+void ed64_bios_sd_switch_mode(u16 mode) {
+
+    if (ed64_bios_old_sd_mode == mode)return;
+    ed64_bios_old_sd_mode = mode;
+
+    u16 old_sd_cfg = ed64_bios_sd_cfg;
+    ed64_bios_sdio_bitlength(0);
+    ed64_bios_register_write(mode, 0xffff);
+    ed64_bios_sd_cfg = old_sd_cfg;
+    ed64_bios_register_write(REG_SD_STATUS, old_sd_cfg);
 }
 
-void bi_sd_busy() {
-    while ((bi_reg_rd(REG_SD_STATUS) & SD_STA_BUSY) != 0);
+/**
+ * @brief Writes the SDIO bit length
+ * 
+ */
+void ed64_bios_sdio_bitlength(u8 val) {
+
+    ed64_bios_sd_cfg &= ~SD_CFG_BITLEN;
+    ed64_bios_sd_cfg |= (val & SD_CFG_BITLEN);
+    ed64_bios_register_write(REG_SD_STATUS, ed64_bios_sd_cfg);
 }
 
-void bi_sd_cmd_wr(u8 val) {
-    bi_sd_switch_mode(REG_SD_CMD_WR);
-    bi_reg_wr(REG_SD_CMD_WR, val);
-    bi_sd_busy();
+/**
+ * @brief Checks if the SD Card is busy
+ * 
+ */
+void ed64_bios_sd_busy() {
+    while ((ed64_bios_register_read(REG_SD_STATUS) & SD_STA_BUSY) != 0);
 }
 
-u8 bi_sd_cmd_rd() {
-
-    bi_sd_switch_mode(REG_SD_CMD_RD);
-    bi_reg_wr(REG_SD_CMD_RD, 0xffff);
-    bi_sd_busy();
-    return bi_reg_rd(REG_SD_CMD_RD);
+/**
+ * @brief Writes a command to SDIO
+ * 
+ */
+void ed64_bios_sdio_cmd_write(u8 val) {
+    ed64_bios_sd_switch_mode(REG_SD_CMD_WR);
+    ed64_bios_register_write(REG_SD_CMD_WR, val);
+    ed64_bios_sd_busy();
 }
 
-void bi_sd_dat_wr(u8 val) {
-    bi_sd_switch_mode(REG_SD_DAT_WR);
-    bi_reg_wr(REG_SD_DAT_WR, 0x00ff | (val << 8));
-    //bi_sd_busy();
+/**
+ * @brief Reads a command from SDIO
+ * 
+ * 
+ * @return the result of the command read
+ */
+u8 ed64_bios_sdio_cmd_read() {
+
+    ed64_bios_sd_switch_mode(REG_SD_CMD_RD);
+    ed64_bios_register_write(REG_SD_CMD_RD, 0xffff);
+    ed64_bios_sd_busy();
+    return ed64_bios_register_read(REG_SD_CMD_RD);
 }
 
-u8 bi_sd_dat_rd() {
-
-    bi_sd_switch_mode(REG_SD_DAT_RD);
-    bi_reg_wr(REG_SD_DAT_RD, 0xffff);
-    //bi_sd_busy();
-    return bi_reg_rd(REG_SD_DAT_RD);
+/**
+ * @brief Writes data to SDIO
+ * 
+ */
+void ed64_bios_sdio_data_write(u8 val) {
+    ed64_bios_sd_switch_mode(REG_SD_DAT_WR);
+    ed64_bios_register_write(REG_SD_DAT_WR, 0x00ff | (val << 8));
+    //ed64_bios_sd_busy();
 }
 
-u8 bi_sd_to_ram(void *dst, u16 slen) {
+/**
+ * @brief Reads data from SDIO
+ * 
+ * 
+ * @return the result of the data read
+ */
+u8 ed64_bios_sd_data_read() {
+
+    ed64_bios_sd_switch_mode(REG_SD_DAT_RD);
+    ed64_bios_register_write(REG_SD_DAT_RD, 0xffff);
+    //ed64_bios_sd_busy();
+    return ed64_bios_register_read(REG_SD_DAT_RD);
+}
+
+/**
+ * @brief Reads memory from the SD card to RAM space
+ * 
+ * @param[in]  dst
+ *             Destination pointer to write to
+ * @param[in]  slen
+ *             Length in bytes to copy
+ *
+ */
+u8 ed64_bios_sdio_to_ram(void *dst, u16 slen) {
 
     u16 i;
     u8 crc[8];
@@ -311,9 +445,9 @@ u8 bi_sd_to_ram(void *dst, u16 slen) {
 
     while (slen--) {
 
-        bi_sd_bitlen(1);
+        ed64_bios_sdio_bitlength(1);
         i = 1;
-        while (bi_sd_dat_rd() != 0xf0) {
+        while (ed64_bios_sd_data_read() != 0xf0) {
             i++;
             if (i == 0) {
                 IO_WRITE(PI_BSD_DOM1_PWD_REG, old_pwd);
@@ -321,11 +455,11 @@ u8 bi_sd_to_ram(void *dst, u16 slen) {
             }
         }
 
-        bi_sd_bitlen(4);
+        ed64_bios_sdio_bitlength(4);
 
-        bi_sd_switch_mode(REG_SD_DAT_RD);
-        sysPI_rd(dst, REG_ADDR(REG_SDIO_ARD), 512);
-        sysPI_rd(crc, REG_ADDR(REG_SDIO_ARD), 8);
+        ed64_bios_sd_switch_mode(REG_SD_DAT_RD);
+        sys_n64_pi_read(dst, REG_ADDR(REG_SDIO_ARD), 512);
+        sys_n64_pi_read(crc, REG_ADDR(REG_SDIO_ARD), 8);
         dst += 512;
 
     }
@@ -335,16 +469,27 @@ u8 bi_sd_to_ram(void *dst, u16 slen) {
     return 0;
 }
 
-u8 bi_sd_to_rom(u32 dst, u16 slen) {
+
+/**
+ * @brief Reads memory from the SD card to ROM space
+ *
+ * @param[in]  dst
+ *             Source pointer to copy from
+ * @param[in]  slen
+ *             Length in bytes to copy
+ *
+ * @return 0 on successful or other value on failure
+ */
+u8 ed64_bios_sdio_to_rom(u32 dst, u16 slen) {
 
     u16 resp = DMA_STA_BUSY;
 
-    bi_reg_wr(REG_DMA_ADDR, dst);
-    bi_reg_wr(REG_DMA_LEN, slen);
+    ed64_bios_register_write(REG_DMA_ADDR, dst);
+    ed64_bios_register_write(REG_DMA_LEN, slen);
 
-    bi_sd_switch_mode(REG_SD_DAT_RD);
+    ed64_bios_sd_switch_mode(REG_SD_DAT_RD);
     while ((resp & DMA_STA_BUSY)) {
-        resp = bi_reg_rd(REG_DMA_STA);
+        resp = ed64_bios_register_read(REG_DMA_STA);
     }
 
     if ((resp & DMA_STA_ERROR))return 1;
@@ -352,29 +497,39 @@ u8 bi_sd_to_rom(u32 dst, u16 slen) {
     return 0;
 }
 
-u8 bi_ram_to_sd(void *src, u16 slen) {
+/**
+ * @brief Writes memory from RAM to the SD card
+ *
+ * @param[in]  src
+ *             Source pointer to copy from
+ * @param[in]  slen
+ *             Length in bytes to copy
+ *
+ * @return 0 on successful or other value on failure
+ */
+u8 ed64_bios_ram_to_sdio(void *src, u16 slen) {
 
     u8 resp;
     u16 crc[4];
 
     while (slen--) {
 
-        sdCrc16(src, crc);
+        ed64_bios_sd_crc16(src, crc);
 
-        bi_sd_bitlen(2);
-        bi_sd_dat_wr(0xff);
-        bi_sd_dat_wr(0xf0);
+        ed64_bios_sdio_bitlength(2);
+        ed64_bios_sdio_data_write(0xff);
+        ed64_bios_sdio_data_write(0xf0);
 
-        bi_sd_bitlen(4);
-        sysPI_wr(src, REG_ADDR(REG_SDIO_ARD), 512);
-        sysPI_wr(crc, REG_ADDR(REG_SDIO_ARD), 8);
+        ed64_bios_sdio_bitlength(4);
+        sys_n64_pi_write(src, REG_ADDR(REG_SDIO_ARD), 512);
+        sys_n64_pi_write(crc, REG_ADDR(REG_SDIO_ARD), 8);
         src += 512;
 
-        bi_sd_bitlen(1);
-        bi_sd_dat_wr(0xff);
+        ed64_bios_sdio_bitlength(1);
+        ed64_bios_sdio_data_write(0xff);
 
         for (int i = 0;; i++) {
-            resp = bi_sd_dat_rd();
+            resp = ed64_bios_sd_data_read();
             if ((resp & 1) == 0)break;
             if (i == 1024)return 1;
         }
@@ -382,18 +537,18 @@ u8 bi_ram_to_sd(void *src, u16 slen) {
         resp = 0;
         for (int i = 0; i < 3; i++) {
             resp <<= 1;
-            resp |= bi_sd_dat_rd() & 1;
+            resp |= ed64_bios_sd_data_read() & 1;
         }
 
         resp &= 7;
         if (resp != 0x02) {
-            if (resp == 5)return 2; //crc error
+            if (resp == 5)return 2; /* crc error */
             return 3;
         }
 
         for (int i = 0;; i++) {
 
-            if (bi_sd_dat_rd() == 0xff)break;
+            if (ed64_bios_sd_data_read() == 0xff)break;
             if (i == 65535)return 4;
         }
     }
@@ -402,7 +557,15 @@ u8 bi_ram_to_sd(void *src, u16 slen) {
     return 0;
 }
 
-void sdCrc16(void *src, u16 *crc_out) {
+/**
+ * @brief CRC for SD
+ * 
+ * @param[in]  src
+ *             Source pointer to read
+ * @param[out]  crc_out
+ *             Destination pointer containing the CRC value
+ */
+void ed64_bios_sd_crc16(void *src, u16 *crc_out) {
 
     u16 i;
     u16 u;
@@ -531,24 +694,42 @@ void sdCrc16(void *src, u16 *crc_out) {
 
 }
 
-//******************************************************************************
+/******************************************************************************
+* Misc functions
+******************************************************************************/
 
-void bi_game_cfg_set(u8 type) {
+/**
+ * @brief Sets the save type on the ED64 cart
+ *
+ * @param[in]  type
+ *             The save type to set
+ */
+void ed64_bios_rom_savetype_set(u8 type) {
 
-    bi_reg_wr(REG_GAM_CFG, type);
+    ed64_bios_register_write(REG_GAM_CFG, type);
 }
 
-//swaps bytes copied from SD card. only affects reads to ROM area
-void bi_wr_swap(u8 swap_on) {
+/**
+ * @brief Allows swapping bytes copied from SD card. Only affects reads to ROM area
+ *
+ * @param[in]  swap_on
+ *             Swaps bytes if true
+ */
+void ed64_bios_write_endian_swap(u8 swap_on) {
 
     if (swap_on) {
-        bi_reg_wr(REG_SYS_CFG, CFG_SWAP_ON);
+        ed64_bios_register_write(REG_SYS_CFG, CFG_SWAP_ON);
     } else {
-        bi_reg_wr(REG_SYS_CFG, 0);
+        ed64_bios_register_write(REG_SYS_CFG, 0);
     }
 }
 
-u32 bi_get_cart_id() {
+/**
+ * @brief Identifies the ED64 cartridge
+ *
+ * @return the cartridge ID
+ */
+u32 ed64_bios_get_cart_id() {
 
-    return bi_reg_rd(REG_EDID);
+    return ed64_bios_register_read(REG_EDID);
 }

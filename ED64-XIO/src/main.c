@@ -1,37 +1,40 @@
-
+/*
+* Copyright (c) Krikzz and Contributors.
+* See LICENSE file in the project root for full license information.
+*/
 
 #include "everdrive.h"
 
-void edid();
-void printError(u8 err);
-u8 demoMenu();
+void main_display_edid();
+void main_display_error(u8 err);
+u8 main_display_menu();
 
 int main(void) {
 
     u8 resp;
     FATFS fs;
 
-    sysInit();
-    bi_init();
+    sys_n64_init();
+    ed64_bios_init();
 
-    gCleanScreen();
-    gConsPrint("FAT init...");
-    gRepaint();
+    screen_clear();
+    screen_print("File system initilizing...");
+    screen_repaint();
 
-    //mount disk
+    /* mount disk */
     memset(&fs, 0, sizeof (fs));
     resp = f_mount(&fs, "", 1);
-    if (resp)printError(resp);
+    if (resp)main_display_error(resp);
 
 
-    while (1) {
-        resp = demoMenu();
-        if (resp)printError(resp);
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
+        resp = main_display_menu();
+        if (resp)main_display_error(resp);
     }
 
 }
 
-u8 demoMenu() {
+u8 main_display_menu() {
 
     enum {
         MENU_FILE_MANAGER,
@@ -48,28 +51,28 @@ u8 demoMenu() {
     u32 selector = 0;
     u8 resp;
 
-    menu[MENU_FILE_MANAGER] = "File Manager";
-    menu[MENU_FILE_READ] = "File Read";
-    menu[MENU_FILE_WRITE] = "File Write";
+    menu[MENU_FILE_MANAGER] = "File Explorer";
+    menu[MENU_FILE_READ] = "File Read (\"SD:/ED64/OS64.v64\")";
+    menu[MENU_FILE_WRITE] = "File Write (\"SD:/test.txt\")";
     menu[MENU_USB_TERMINAL] = "USB Terminal";
-    menu[MENU_USB_LOADER] = "USB Loader";
-    menu[MENU_EDID] = "EverDrive ID";
+    menu[MENU_USB_LOADER] = "USB ROM Loader";
+    menu[MENU_EDID] = "ED64 Hardware Rev ID";
 
-    while (1) {
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
 
-        gCleanScreen();
+        screen_clear();
 
         for (int i = 0; i < MENU_SIZE; i++) {
-            gConsPrint("          ");
+            screen_print("  ");
             if (i == selector) {
-                gAppendString(">");
+                screen_append_str_print(">");
             } else {
-                gAppendString(" ");
+                screen_append_str_print(" ");
             }
-            gAppendString(menu[i]);
+            screen_append_str_print(menu[i]);
         }
 
-        gRepaint();
+        screen_repaint();
         controller_scan();
         cd = get_keys_down();
 
@@ -83,80 +86,79 @@ u8 demoMenu() {
 
         if (!cd.c[0].A)continue;
 
-        //browse files in root dir and launch the game
+        /* browse files in root dir and launch the ROM */
         if (selector == MENU_FILE_MANAGER) {
-            resp = fmanager();
+            resp = fmanager_display();
             if (resp)return resp;
         }
 
 
-        //read data from file
+        /* read data from file */
         if (selector == MENU_FILE_READ) {
-            resp = fileRead();
+            resp = fm_file_read();
             if (resp)return resp;
         }
 
-        //write string to the test.txt file
+        /* write string to the test.txt file */
         if (selector == MENU_FILE_WRITE) {
-            resp = fileWrite();
+            resp = fm_file_write();
             if (resp)return resp;
         }
 
-        //simple communication via USB. receive and transmit strings. 
-        //Send some strings via virtual COM port and they will be printed on screen.
-        //string length should be multiple of 4
+        /* Simple communication via USB. receive and transmit strings. 
+        Send some strings via virtual COM port and they will be printed on screen.
+        String length should be multiple of 4 */
         if (selector == MENU_USB_TERMINAL) {
-            usbTerminal();
+            usb_terminal();
         }
 
-        //usb client demo compatible with usb64.exe
+        /* usb client demo compatible with usb64.exe */
         if (selector == MENU_USB_LOADER) {
-            usbLoadGame();
+            usb_load_rom();
         }
 
-        //everdrive hardware identification
+        /* everdrive hardware identification */
         if (selector == MENU_EDID) {
-            edid();
+            main_display_edid();
         }
 
     }
 }
 
-void edid() {
+void main_display_edid() {
 
     struct controller_data cd;
-    u32 id = bi_get_cart_id();
+    u32 id = ed64_bios_get_cart_id();
 
-    gCleanScreen();
-    gConsPrint("Device ID     ");
-    gAppendHex32(id);
-    gConsPrint("");
-    gConsPrint("Device Name   ");
+    screen_clear();
+    screen_print("ED64 H/W Rev ID:   ");
+    screen_append_hex32_print(id);
+    screen_print("ED64 H/W Rev Name: ");
 
     switch (id) {
-        case CART_ID_V2:
-            gAppendString("EverDrive 64 V2.5");
+        case ED64_CART_ID_V2:
+            screen_append_str_print("EverDrive 64 V2.5");
             break;
-        case CART_ID_V3:
-            gAppendString("EverDrive 64 V3");
+        case ED64_CART_ID_V3:
+            screen_append_str_print("EverDrive 64 V3");
             break;
-        case CART_ID_X7:
-            gAppendString("EverDrive 64 X7");
+        case ED64_CART_ID_X7:
+            screen_append_str_print("EverDrive 64 X7");
             break;
-        case CART_ID_X5:
-            gAppendString("EverDrive 64 X5");
+        case ED64_CART_ID_X5:
+            screen_append_str_print("EverDrive 64 X5");
             break;
         default:
-            gAppendString("Unknown");
+            screen_append_str_print("Unknown");
             break;
     }
 
 
-    gConsPrint("");
-    gConsPrint("Press B to exit");
-    gRepaint();
-    while (1) {
-        gVsync();
+    screen_print("");
+    screen_print("Press (B) to exit");
+    screen_repaint();
+    for ( ;; ) { /* forever [equivalent to: "while (1)"] */
+        screen_vsync();
         controller_scan();
         cd = get_keys_down();
 
@@ -168,27 +170,27 @@ void edid() {
 
 }
 
-void printError(u8 err) {
+void main_display_error(u8 err) {
 
-    gCleanScreen();
-    gConsPrint("error: ");
-    gAppendHex8(err);
-    gRepaint();
+    screen_clear();
+    screen_print("error: ");
+    screen_append_hex8_print(err);
+    screen_repaint();
 
     while (1);
 }
 
-void boot_simulator(u8 cic) {
+void rom_boot_simulator(u8 cic) {
 
 
     static u16 cheats_on; /* 0 = off, 1 = select, 2 = all */
-    static u8 game_cic;
+    static u8 rom_cic;
 
-    game_cic = cic;
+    rom_cic = cic;
     cheats_on = 0;
 
 
-    // Start game via CIC boot code
+    /*  Start ROM via CIC boot code */
     asm __volatile__(
             ".set noreorder;"
 
@@ -294,7 +296,7 @@ void boot_simulator(u8 cic) {
             "lui    $t3, 0xB000;"
 
             : // outputs
-            : "r" (game_cic), // inputs
+            : "r" (rom_cic), // inputs
             "r" (cheats_on)
             : "$4", "$5", "$6", "$8", // clobber
             "$11", "$19", "$20", "$21",

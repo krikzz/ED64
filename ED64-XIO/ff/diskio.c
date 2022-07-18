@@ -13,8 +13,8 @@
 
 
 /* Definitions of physical drive number for each drive */
-#define DEV_RAM		0	/* Example: Map Ramdisk to physical drive 0 */
-#define DEV_MMC		1	/* Example: Map MMC/SD card to physical drive 1 */
+#define DEV_SD		0	/* Example: Map SD card to physical drive 0 */
+#define DEV_RAM		1	/* Example: Map Ramdisk to physical drive 1 */
 #define DEV_USB		2	/* Example: Map USB MSD to physical drive 2 */
 
 //extern SD_HandleTypeDef hsd;
@@ -33,7 +33,7 @@ DSTATUS disk_status(
 }
 
 /*-----------------------------------------------------------------------*/
-/* Inidialize a Drive                                                    */
+/* Initialize a Drive                                                    */
 
 /*-----------------------------------------------------------------------*/
 
@@ -41,7 +41,7 @@ DSTATUS disk_initialize(
         BYTE pdrv /* Physical drive nmuber to identify the drive */
         ) {
 
-    dresp = diskInit();
+    dresp = sd_disk_init();
     dstat = 0;
     if (dresp)dstat = STA_NOINIT;
 
@@ -62,7 +62,7 @@ DRESULT disk_read(
         UINT count /* Number of sectors to read */
         ) {
 
-    dresp = diskRead(buff, sector, count);
+    dresp = sd_disk_read(buff, sector, count);
     if (dresp)return RES_ERROR;
     return RES_OK;
 }
@@ -83,7 +83,7 @@ DRESULT disk_write(
         ) {
 
 
-    dresp = diskWrite((BYTE *) buff, sector, count);
+    dresp = sd_disk_write((BYTE *) buff, sector, count);
     if (dresp)return RES_ERROR;
     return RES_OK;
 }
@@ -105,7 +105,7 @@ DRESULT disk_ioctl(
 
     switch (cmd) {
         case CTRL_SYNC:
-            res = diskCloseRW();
+            res = sd_disk_close_rw();
             dresp = res;
             res = res == 0 ? RES_OK : RES_ERROR;
             break;
@@ -129,3 +129,10 @@ DRESULT disk_ioctl(
     return res;
 }
 
+DWORD get_fattime (void)
+{
+	//TODO: add ability to use the X7 or V3 RTC.
+	return ((DWORD)(FF_NORTC_YEAR - 1980) << 25 |
+            (DWORD)FF_NORTC_MON << 21 |
+            (DWORD)FF_NORTC_MDAY << 16);
+}

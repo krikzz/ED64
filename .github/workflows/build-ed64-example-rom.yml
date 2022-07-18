@@ -4,26 +4,33 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        releasetype: [ 'debug', 'release' ]
     steps:
       - uses: actions/checkout@v2
         name: Checkout Code
 
       - name: Install Libdragon container
         run: |
-          sudo npm install -g libdragon
+          # TODO: the sample needs updating. This is the last known compatible version!
+          # Remove the @1.3.15 to run at latest.
+          # And, this would also involve having a git subtree of the libdragon version.
+          # which would make it easier to show "custom" changes to source.
+          sudo npm install -g libdragon@1.3.15
           libdragon download
 
       - name: Setup Build environment
         run: |
           cd ${{ github.workspace }}/ED64-XIO/
-          mkdir bin && mkdir obj
+          mkdir bin && mkdir bin/release && mkdir bin/debug && mkdir obj
           libdragon start
 
       - name: Build ROM
-        run: cd ${{ github.workspace }}/ED64-XIO/ && libdragon make
+        run: cd ${{ github.workspace }}/ED64-XIO/ && libdragon make ${{ matrix.releasetype }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v1.0.0
         with:
-          name: ED64-XIO-SAMPLE_N64_ROM
-          path: ${{ github.workspace }}/ED64-XIO/bin/ED64-XIO-SAMPLE.v64
+          name: ED64-XIO-SAMPLE_N64_ROM-${{ matrix.releasetype }}
+          path: ${{ github.workspace }}/ED64-XIO/bin/${{ matrix.releasetype }}/ED64-XIO-SAMPLE.v64
