@@ -15,4 +15,5 @@ Provides the reference source for USB communication between PC and ED64 developm
 
 
 ### [ED64-XIO](ED64-XIO)
-Provides the reference source that can be used by homebrew developers to utilise hardware functions including SD card and USB capabilities from an N64 ROM
+Provides the reference source that can be used by homebrew developers to utilise hardware functions including SD card and USB capabilities from an N64 ROM.
+Note that the current sample relies on libDragon built earlier than 2021.
