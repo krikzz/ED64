@@ -10,7 +10,7 @@ jobs:
 
       - name: Install Libdragon container
         run: |
-          sudo npm install -g libdragon
+          sudo npm install -g libdragon@3.0.0
           libdragon download
 
       - name: Setup Build environment
