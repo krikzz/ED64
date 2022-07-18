@@ -10,7 +10,11 @@ jobs:
 
       - name: Install Libdragon container
         run: |
-          sudo npm install -g libdragon
+          # TODO: the sample needs updating. This is the last known compatible version!
+          # Remove the @1.3.15 to run at latest.
+          # And, this would also involve having a git subtree of the libdragon version.
+          # which would make it easier to show "custom" changes to source.
+          sudo npm install -g libdragon@1.3.15
           libdragon download
 
       - name: Setup Build environment
