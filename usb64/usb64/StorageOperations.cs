@@ -104,7 +104,11 @@ namespace ed64usb
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, path.Length, (uint)mode); //todo: check conversion of mode
             UsbInterface.Write(path);
-            CommandProcessor.TestCommunication();
+            var response = CommandProcessor.TestCommunication();
+            if (response != 0)
+            {
+                throw new Exception($"File open error: 0x{BitConverter.ToString(new byte[] { response })}");
+            }
         }
 
         private static void FileRead(byte[] buff, int offset, int length)
@@ -121,7 +125,11 @@ namespace ed64usb
                 offset += blockSize;
                 length -= blockSize;
             }
-            CommandProcessor.TestCommunication();
+            var response = CommandProcessor.TestCommunication();
+            if (response != 0)
+            {
+                throw new Exception($"File read error: 0x{BitConverter.ToString(new byte[] { response })}");
+            }
         }
 
         private static void FileWrite(byte[] buff, int offset, int length)
@@ -138,14 +146,21 @@ namespace ed64usb
                 offset += blockSize;
                 length -= blockSize;
             }
-            CommandProcessor.TestCommunication(); // check byte[4] == 0
+            var response = CommandProcessor.TestCommunication();
+            if (response != 0)
+            {
+                throw new Exception($"File write error: 0x{BitConverter.ToString(new byte[] { response })}");
+            }
         }
 
         private static void FileClose()
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileClose);
-            CommandProcessor.TestCommunication(); // check byte[4] == 0
-            // else throw (with the test Comms Return).
+            var response = CommandProcessor.TestCommunication();
+            if (response != 0)
+            {
+                throw new Exception($"File close error: 0x{BitConverter.ToString(new byte[] { response })}");
+            }
         }
 
         private static FileInformation GetFileInfo(string path)

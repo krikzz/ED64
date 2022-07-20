@@ -351,10 +351,10 @@ namespace ed64usb
         /// <summary>
         /// Test that USB port is able to transmit and receive
         /// </summary>
-        public static byte[] TestCommunication()
+        public static byte TestCommunication()
         {
             CommandPacketTransmit(TransmitCommand.TestConnection);
-            return CommandPacketReceive();
+            return CommandPacketReceive()[4];
         }
 
         private static bool IsBootLoader(byte[] data)
