@@ -28,6 +28,48 @@ namespace ed64usb
             OpenAppend = 0x30  //48
         }
 
+        public struct DosDateTime
+        {
+            public ushort Date;
+            public ushort Time;
+
+            public int Year
+            {
+                get => ((Date >> 9) & 0x7F) + 1980;
+                set => Date = (ushort)((Date & 0x1FF) | ((value - 1980) << 9));
+            }
+
+            public int Month
+            {
+                get => (Date >> 5) & 0xF;
+                set => Date = (ushort)((Date & 0xFE1F) | (value << 5));
+            }
+
+            public int Day
+            {
+                get => Date & 0x1F;
+                set => Date = (ushort)((Date & 0xFFE0) | value);
+            }
+
+            public int Hour
+            {
+                get => (Time >> 11) & 0x1F;
+                set => Time = (ushort)((Time & 0x7FF) | (value << 11));
+            }
+
+            public int Minute
+            {
+                get => (Time >> 5) & 0x3F;
+                set => Time = (ushort)((Time & 0xF81F) | (value << 5));
+            }
+
+            public int Second
+            {
+                get => (Time & 0x1F) << 1;
+                set => Time = (ushort)((Time & 0xFFE0) | (value >> 1));
+            }
+        }
+
         private struct FileInformation
         {
             /// <summary>
@@ -40,10 +82,40 @@ namespace ed64usb
             /// </summary>
             public int FileSize { get; set; }
 
-            public ushort ModifiedDate { get; set; } //TODO: Merge with time for DateTime (for C# goodness).
+            ///// <summary>
+            ///// The Date the file was last modified
+            ///// </summary>
+            ///// <remarks>
+            ///// bit15:9
+            ///// Year origin from 1980 (0..127)
+            ///// bit8:5
+            ///// Month(1..12)
+            ///// bit4:0
+            ///// Day(1..31)
+            ///// </remarks>
+            //public ushort ModifiedDate { get; set; } //TODO: Merge with time for DateTime (for C# goodness).
 
-            public ushort ModifiedTime { get; set; }
+            ///// <summary>
+            ///// The Time the file was last modified
+            ///// </summary>
+            ///// <remarks>
+            ///// bit15:11
+            ///// Hour(0..23)
+            ///// bit10:5
+            ///// Minute(0..59)
+            ///// bit4:0
+            ///// Second / 2 (0..29)
+            ///// </remarks>
+            //public ushort ModifiedTime { get; set; }
 
+            /// <summary>
+            /// The DateTime the file was last modified
+            /// </summary>
+            public DosDateTime ModifiedDateTime { get; set; }
+
+            /// <summary>
+            /// The file attributes
+            /// </summary>
             public FatFsFileAttributes Attributes { get; set; }
         }
 
@@ -187,14 +259,19 @@ namespace ed64usb
             return new FileInformation()
             {
                 Attributes = (FatFsFileAttributes)responseBytes[5],
+                // TODO: what are the 2 bytes that are not decoded?
                 FileSize = IntegerFromBytes(responseBytes, 8), //responseBytes @ offset 8 (4 bytes)
-                ModifiedDate = UshortFromBytes(responseBytes, 12), //responseBytes @ offset 12 (2 bytes)
-                ModifiedTime = UshortFromBytes(responseBytes, 14) //responseBytes @ offset 14 (2 bytes)
+                ModifiedDateTime = new DosDateTime()
+                {
+                    Date = UshortFromBytes(responseBytes, 12), //responseBytes @ offset 12 (2 bytes)
+                    Time = UshortFromBytes(responseBytes, 14) //responseBytes @ offset 14 (2 bytes)
+                }
             };
         }
 
         private static int IntegerFromBytes(byte[] data, int offset) //TODO: probably a better way to convert endian.
         {
+            //BitConverter.ToInt32(data, offset)
             //BitConverter.GetBytes(data).Reverse();
             return data[offset + 3] | (data[offset + 2] << 8) | (data[offset + 1] << 16) | (data[offset] << 24);
         }
@@ -203,6 +280,5 @@ namespace ed64usb
         {
             return (ushort)(data[offset + 1] | (data[offset] << 8));
         }
-
     }
 }
