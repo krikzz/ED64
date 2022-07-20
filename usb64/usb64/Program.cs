@@ -189,10 +189,13 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-cp"):
                             Console.WriteLine("Transferring file.");
-                            //TODO: check SubArg processing...
                             //TODO: would not be able to handle spaces in path!
-                            var subargs = x.Split(' ');
-                            CommandProcessor.TransferFile(subargs[1], subargs[2]);
+                            Console.WriteLine($"Arg count = {args.Length}");
+                            foreach (var str in args)
+                            {
+                                Console.WriteLine($"subarg = {str}");
+                            }
+                            CommandProcessor.TransferFile(args[1], args[2]);
                             break;
 
                         default:

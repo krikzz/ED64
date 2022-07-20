@@ -3,6 +3,9 @@ using System.IO;
 
 namespace ed64usb
 {
+    /// <summary>
+    /// Operations for managing ED64 SD storage over USB
+    /// </summary>
     public static class StorageOperations
     {
 
@@ -24,11 +27,11 @@ namespace ed64usb
             Write = 0x02,
             CreateNew = 0x04,
             CreateAlways = 0x08,
-            OpenAlways = 0x10, //16,
-            OpenAppend = 0x30  //48
+            OpenAlways = 0x10,
+            OpenAppend = 0x30
         }
 
-        public struct DosDateTime
+        private struct DosDateTime
         {
             public ushort Date;
             public ushort Time;
@@ -119,73 +122,84 @@ namespace ed64usb
             public FatFsFileAttributes Attributes { get; set; }
         }
 
-        public static void FileCopy(string srcPath, string dstPath)
+        /// <summary>
+        /// Copies a file or directory between devices
+        /// </summary>
+        /// <param name="sourcePath">The source file or directory path</param>
+        /// <param name="destinationPath">the destination file or directory path</param>
+        public static void FileCopy(string sourcePath, string destinationPath)
         {
-            srcPath = srcPath.Trim();
-            dstPath = dstPath.Trim();
-            if (!srcPath.ToLower().StartsWith("sd:") && File.GetAttributes(srcPath).HasFlag(FileAttributes.Directory))
+            sourcePath = sourcePath.Trim();
+            destinationPath = destinationPath.Trim();
+            if (!sourcePath.ToLower().StartsWith("sd:") && File.GetAttributes(sourcePath).HasFlag(FileAttributes.Directory))
             {
-                DirectoryCopy(srcPath, dstPath);
+                DirectoryCopy(sourcePath, destinationPath);
                 return;
             }
-            if (dstPath.EndsWith("/") || dstPath.EndsWith("\\"))
+            if (destinationPath.EndsWith("/") || destinationPath.EndsWith("\\"))
             {
-                dstPath += Path.GetFileName(srcPath);
+                destinationPath += Path.GetFileName(sourcePath);
             }
-            Console.WriteLine($"copying file: {srcPath} to {dstPath}");
+            Console.WriteLine($"copying file: {sourcePath} to {destinationPath}");
             byte[] fileData;
-            if (srcPath.ToLower().StartsWith("sd:"))
+            if (sourcePath.ToLower().StartsWith("sd:"))
             {
-                srcPath = srcPath.Substring(3); // remove "sd:" from path
-                fileData = new byte[GetFileInfo(srcPath).FileSize];
-                FileOpen(srcPath, FatFsFileMode.Read);
+                sourcePath = sourcePath.Substring(3); // remove "sd:" from path
+                var fileinfo = GetFileInfo(sourcePath);
+                Console.WriteLine($"FileInformation for {sourcePath}");
+                Console.WriteLine($"  FileName {fileinfo.FileName}");
+                Console.WriteLine($"  FileSize {fileinfo.FileSize}");
+                Console.WriteLine($"  FileModified {new DateTime(fileinfo.ModifiedDateTime.Year, fileinfo.ModifiedDateTime.Month, fileinfo.ModifiedDateTime.Day, fileinfo.ModifiedDateTime.Hour, fileinfo.ModifiedDateTime.Minute, fileinfo.ModifiedDateTime.Second).ToString("o")}");
+                Console.WriteLine($"  FileAttributes {fileinfo.Attributes}");
+                fileData = new byte[fileinfo.FileSize];
+                FileOpen(sourcePath, FatFsFileMode.Read);
                 FileRead(fileData, 0, fileData.Length);
                 FileClose();
             }
             else
             {
-                fileData = File.ReadAllBytes(srcPath);
+                fileData = File.ReadAllBytes(sourcePath);
             }
-            if (dstPath.ToLower().StartsWith("sd:"))
+            if (destinationPath.ToLower().StartsWith("sd:"))
             {
-                dstPath = dstPath.Substring(3); // remove "sd:" from path
-                FileOpen(dstPath, (FatFsFileMode.CreateAlways | FatFsFileMode.Write)); //TODO: was 10, so presuming 0x0A to mean CreateAlways + Write!
+                destinationPath = destinationPath.Substring(3); // remove "sd:" from path
+                FileOpen(destinationPath, (FatFsFileMode.CreateAlways | FatFsFileMode.Write)); //TODO: was 10, so presuming 0x0A to mean CreateAlways + Write!
                 FileWrite(fileData, 0, fileData.Length);
                 FileClose();
             }
             else
             {
-                File.WriteAllBytes(dstPath, fileData);
+                File.WriteAllBytes(destinationPath, fileData);
             }
         }
 
-        private static void DirectoryCopy(string srcDir, string dstDir)
+        private static void DirectoryCopy(string sourceDirectory, string destinationDirectory)
         {
-            if (!srcDir.EndsWith("/"))
+            if (!sourceDirectory.EndsWith("/"))
             {
-                srcDir += "/";
+                sourceDirectory += "/";
             }
-            if (!dstDir.EndsWith("/"))
+            if (!destinationDirectory.EndsWith("/"))
             {
-                dstDir += "/";
+                destinationDirectory += "/";
             }
-            string[] directories = Directory.GetDirectories(srcDir);
+            string[] directories = Directory.GetDirectories(sourceDirectory);
             for (int i = 0; i < directories.Length; i++)
             {
-                DirectoryCopy(directories[i], dstDir + Path.GetFileName(directories[i]));
+                DirectoryCopy(directories[i], destinationDirectory + Path.GetFileName(directories[i]));
             }
-            string[] files = Directory.GetFiles(srcDir);
+            string[] files = Directory.GetFiles(sourceDirectory);
             for (int j = 0; j < files.Length; j++)
             {
-                FileCopy(files[j], dstDir + Path.GetFileName(files[j]));
+                FileCopy(files[j], destinationDirectory + Path.GetFileName(files[j]));
             }
         }
 
 
-        private static void FileOpen(string path, FatFsFileMode mode)
+        private static void FileOpen(string filePath, FatFsFileMode fileMode)
         {
-            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, path.Length, (uint)mode); //todo: check conversion of mode
-            UsbInterface.Write(path);
+            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, filePath.Length, (uint)fileMode); //todo: check conversion of mode
+            UsbInterface.Write(filePath);
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
@@ -193,19 +207,19 @@ namespace ed64usb
             }
         }
 
-        private static void FileRead(byte[] buff, int offset, int length)
+        private static void FileRead(byte[] fileData, int offset, int fileLength)
         {
-            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileRead, 0, length, 0);
-            while (length > 0)
+            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileRead, 0, fileLength, 0);
+            while (fileLength > 0)
             {
                 int blockSize = 4096;
-                if (blockSize > length)
+                if (blockSize > fileLength)
                 {
-                    blockSize = length;
+                    blockSize = fileLength;
                 }
-                UsbInterface.Read(buff, offset, blockSize);
+                UsbInterface.Read(fileData, offset, blockSize);
                 offset += blockSize;
-                length -= blockSize;
+                fileLength -= blockSize;
             }
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
@@ -214,19 +228,19 @@ namespace ed64usb
             }
         }
 
-        private static void FileWrite(byte[] buff, int offset, int length)
+        private static void FileWrite(byte[] fileData, int offset, int fileLength)
         {
-            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileWrite, 0, length, 0);
-            while (length > 0)
+            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileWrite, 0, fileLength, 0);
+            while (fileLength > 0)
             {
                 int blockSize = 4096;
-                if (blockSize > length)
+                if (blockSize > fileLength)
                 {
-                    blockSize = length;
+                    blockSize = fileLength;
                 }
-                UsbInterface.Write(buff, offset, blockSize);
+                UsbInterface.Write(fileData, offset, blockSize);
                 offset += blockSize;
-                length -= blockSize;
+                fileLength -= blockSize;
             }
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
@@ -260,24 +274,32 @@ namespace ed64usb
             {
                 Attributes = (FatFsFileAttributes)responseBytes[5],
                 // TODO: what are the 2 bytes that are not decoded?
-                FileSize = IntegerFromBytes(responseBytes, 8), //responseBytes @ offset 8 (4 bytes)
+                FileSize = Int32FromBytes(responseBytes, 8), //responseBytes @ offset 8 (4 bytes)
                 ModifiedDateTime = new DosDateTime()
                 {
-                    Date = UshortFromBytes(responseBytes, 12), //responseBytes @ offset 12 (2 bytes)
-                    Time = UshortFromBytes(responseBytes, 14) //responseBytes @ offset 14 (2 bytes)
+                    Date = UInt16FromBytes(responseBytes, 12), //responseBytes @ offset 12 (2 bytes)
+                    Time = UInt16FromBytes(responseBytes, 14) //responseBytes @ offset 14 (2 bytes)
                 }
             };
         }
 
-        private static int IntegerFromBytes(byte[] data, int offset) //TODO: probably a better way to convert endian.
+        private static int Int32FromBytes(byte[] data, int offset) //TODO: probably a better way to convert endian.
         {
-            //BitConverter.ToInt32(data, offset)
-            //BitConverter.GetBytes(data).Reverse();
+            //byte[] tempBytes = new byte[4];
+            //Array.Copy(data, offset, tempBytes, 0, 4);
+            //Array.Reverse(tempBytes);
+            //return BitConverter.ToInt32(tempBytes);
+
             return data[offset + 3] | (data[offset + 2] << 8) | (data[offset + 1] << 16) | (data[offset] << 24);
         }
 
-        private static ushort UshortFromBytes(byte[] data, int offset) //TODO: probably a better way to convert endian.
+        private static ushort UInt16FromBytes(byte[] data, int offset) //TODO: probably a better way to convert endian.
         {
+            //byte[] tempBytes = new byte[2];
+            //Array.Copy(data, offset, tempBytes, 0, 2);
+            //Array.Reverse(tempBytes);
+            //return BitConverter.ToUInt16(tempBytes);
+            
             return (ushort)(data[offset + 1] | (data[offset] << 8));
         }
     }

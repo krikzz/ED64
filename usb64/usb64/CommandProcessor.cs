@@ -38,6 +38,7 @@ namespace ed64usb
         {
             CommsReply = (byte)'r',
             CommsReplyLegacy = (byte)'k',
+            FileInfo = (byte)'4'
 
         }
 
@@ -418,6 +419,8 @@ namespace ed64usb
                         return cmd;
                     case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
                         throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
+                    case ReceiveCommand.FileInfo:
+                        return cmd;
                     default:
                         throw new Exception("Unexpected response received from USB port.");
                 }
