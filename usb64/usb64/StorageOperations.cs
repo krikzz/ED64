@@ -7,6 +7,16 @@ namespace ed64usb
     {
 
         [Flags]
+        private enum FatFsFileAttributes : byte
+        {
+            ReadOnly = 0x01,
+            Hidden = 0x02,
+            System = 0x04,
+            Directory = 0x10,
+            Archive = 0x20
+        }
+
+        [Flags]
         private enum FatFsFileMode : byte
         {
             OpenExisting = 0x00,
@@ -34,7 +44,7 @@ namespace ed64usb
 
             public ushort ModifiedTime { get; set; }
 
-            public byte Attributes { get; set; }
+            public FatFsFileAttributes Attributes { get; set; }
         }
 
         public static void FileCopy(string srcPath, string dstPath)
@@ -176,7 +186,7 @@ namespace ed64usb
 
             return new FileInformation()
             {
-                Attributes = responseBytes[5],
+                Attributes = (FatFsFileAttributes)responseBytes[5],
                 FileSize = IntegerFromBytes(responseBytes, 8), //responseBytes @ offset 8 (4 bytes)
                 ModifiedDate = UshortFromBytes(responseBytes, 12), //responseBytes @ offset 12 (2 bytes)
                 ModifiedTime = UshortFromBytes(responseBytes, 14) //responseBytes @ offset 14 (2 bytes)
