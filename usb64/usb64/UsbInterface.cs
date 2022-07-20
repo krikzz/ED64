@@ -14,12 +14,11 @@ namespace ed64usb
         const int DEFAULT_BLOCK_SIZE = 32768;
 
 
-        public static void Read(byte[] data, int offset, int length)
+        public static void Read(byte[] data, int offset, int length, int blockSize = DEFAULT_BLOCK_SIZE)
         {
 
             while (length > 0)
             {
-                var blockSize = DEFAULT_BLOCK_SIZE;
                 if (blockSize > length) blockSize = length;
                 var bytesread = port.Read(data, offset, blockSize);
                 length -= bytesread;
@@ -38,12 +37,11 @@ namespace ed64usb
 
         }
 
-        public static void Write(byte[] data, int offset, int length)
+        public static void Write(byte[] data, int offset, int length, int blockSize = DEFAULT_BLOCK_SIZE)
         {
 
             while (length > 0)
             {
-                var blockSize = DEFAULT_BLOCK_SIZE;
                 if (blockSize > length) blockSize = length;
                 port.Write(data, offset, blockSize);
                 length -= blockSize;

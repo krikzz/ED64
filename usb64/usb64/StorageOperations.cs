@@ -163,7 +163,7 @@ namespace ed64usb
             if (destinationPath.ToLower().StartsWith("sd:"))
             {
                 destinationPath = destinationPath.Substring(3); // remove "sd:" from path
-                FileOpen(destinationPath, (FatFsFileMode.CreateAlways | FatFsFileMode.Write)); //TODO: was 10, so presuming 0x0A to mean CreateAlways + Write!
+                FileOpen(destinationPath, (FatFsFileMode)10); //(FatFsFileMode.CreateAlways | FatFsFileMode.Write)); //TODO: was 10, so presuming 0x0A to mean CreateAlways + Write!
                 FileWrite(fileData, 0, fileData.Length);
                 FileClose();
             }
@@ -210,17 +210,8 @@ namespace ed64usb
         private static void FileRead(byte[] fileData, int offset, int fileLength)
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileRead, 0, fileLength, 0);
-            while (fileLength > 0)
-            {
-                int blockSize = 4096;
-                if (blockSize > fileLength)
-                {
-                    blockSize = fileLength;
-                }
-                UsbInterface.Read(fileData, offset, blockSize);
-                offset += blockSize;
-                fileLength -= blockSize;
-            }
+            UsbInterface.Read(fileData, offset, fileLength, 4096);
+
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
@@ -231,17 +222,8 @@ namespace ed64usb
         private static void FileWrite(byte[] fileData, int offset, int fileLength)
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileWrite, 0, fileLength, 0);
-            while (fileLength > 0)
-            {
-                int blockSize = 4096;
-                if (blockSize > fileLength)
-                {
-                    blockSize = fileLength;
-                }
-                UsbInterface.Write(fileData, offset, blockSize);
-                offset += blockSize;
-                fileLength -= blockSize;
-            }
+            UsbInterface.Write(fileData, offset, fileLength, 4096);
+
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
@@ -262,7 +244,7 @@ namespace ed64usb
         private static FileInformation GetFileInfo(string path)
         {
 
-            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo);
+            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, path.Length, 0);
             UsbInterface.Write(path);
             var responseBytes = CommandProcessor.CommandPacketReceive();
             if (responseBytes[4] != 0)
