@@ -6,7 +6,8 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        dotnet: [ 'net40', 'net45', 'netcoreapp3.1', 'net6.0' ]
+        # dotnet: [ 'net40', 'net45', 'netcoreapp3.1', 'net6.0' ]
+        dotnet: [ 'net45', 'netcoreapp3.1', 'net6.0' ]
     name: Build ${{ matrix.dotnet }} usb64 App
     steps:
       - uses: actions/checkout@v2
