@@ -11,7 +11,7 @@ namespace ed64usb
 
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
-        public const string MINIMUM_OS_VERSION = "3.05";
+        public const string MINIMUM_OS_VERSION = "3.05"; //TODO: now technically 3.07 due to storage operations. Could possibily handle (if we can interegate).
         public const int MAX_ROM_SIZE = 0x4000000;
         public const int MIN_ROM_SIZE = 0x101000;
 
@@ -38,7 +38,7 @@ namespace ed64usb
         {
             CommsReply = (byte)'r',
             CommsReplyLegacy = (byte)'k',
-            FileInfo = (byte)'4'
+            CommsReplyFileInfo = (byte)'4'
 
         }
 
@@ -419,7 +419,7 @@ namespace ed64usb
                         return cmd;
                     case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
                         throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
-                    case ReceiveCommand.FileInfo:
+                    case ReceiveCommand.CommsReplyFileInfo:
                         return cmd;
                     default:
                         throw new Exception("Unexpected response received from USB port.");
