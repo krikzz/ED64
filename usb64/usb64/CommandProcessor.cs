@@ -15,7 +15,7 @@ namespace ed64usb
         public const int MAX_ROM_SIZE = 0x4000000;
         public const int MIN_ROM_SIZE = 0x101000;
 
-        private enum TransmitCommand : byte
+        public enum TransmitCommand : byte // TODO: why not char?
         {
             RomFillCartridgeSpace = (byte)'c', //char ROM fill 'c' artridge space
             RomRead = (byte)'R', //char ROM 'R' ead
@@ -25,8 +25,13 @@ namespace ed64usb
 
             RamRead = (byte)'r', //char RAM 'r' ead
             //RamWrite = (byte)'w', //char RAM 'w' rite
-            FpgaWrite = (byte)'f' //char 'f' pga write
-
+            FpgaWrite = (byte)'f', //char 'f' pga write
+            //FileTransfer = (byte)'c' //char File Transfer `c` opy
+            FileOpen = (byte)'0',
+            FileRead = (byte)'1',
+            FileWrite = (byte)'2',
+            FileClose = (byte)'3',
+            FileInfo = (byte)'4'
         }
 
         public enum ReceiveCommand : byte
@@ -308,6 +313,26 @@ namespace ed64usb
 
         }
 
+        /// <summary>
+        /// Copies a file between devices.
+        /// </summary>
+        /// <param name="srcFilePath">The filename to copy from</param>
+        /// <param name="dstFilePath">The filename to copy to</param>
+        public static void TransferFile(string srcFilePath = "", string dstFilePath = "")
+        {
+            if (string.IsNullOrEmpty(srcFilePath))
+            {
+                throw new Exception("source file path is invalid");
+            }
+            else if (string.IsNullOrEmpty(dstFilePath))
+            {
+                throw new Exception("destination file path is invalid");
+            }
+            else 
+            {
+                StorageOperations.FileCopy(srcFilePath, dstFilePath);
+            }
+        }
 
         private static void FillCartridgeRomSpace(int romLength, uint value)
         {
@@ -326,10 +351,10 @@ namespace ed64usb
         /// <summary>
         /// Test that USB port is able to transmit and receive
         /// </summary>
-        public static void TestCommunication()
+        public static byte[] TestCommunication()
         {
             CommandPacketTransmit(TransmitCommand.TestConnection);
-            CommandPacketReceive();
+            return CommandPacketReceive();
         }
 
         private static bool IsBootLoader(byte[] data)
@@ -352,7 +377,7 @@ namespace ed64usb
         /// <param name="address">Optional</param>
         /// <param name="length">Optional </param>
         /// <param name="argument">Optional</param>
-        private static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
+        public static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
             length /= 512; //Must take into account buffer size.
 
@@ -381,7 +406,7 @@ namespace ed64usb
         /// Receives a command response from the USB port
         /// </summary>
         /// <returns>the full response in bytes</returns>
-        private static byte[] CommandPacketReceive()
+        public static byte[] CommandPacketReceive()
         {
 
             var cmd = UsbInterface.Read(16);

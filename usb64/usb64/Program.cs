@@ -35,6 +35,8 @@ namespace ed64usb
             Console.WriteLine("-diag (Runs communications diagnostics.");
             Console.WriteLine("-drom=<filename> (Dumps loaded ROM to PC).");
             Console.WriteLine("-screen=<filename> (Dumps framebuffer as BMP to PC).");
+            Console.WriteLine("-cp <source filepath> <destination filepath> (Copies a file between devices.");
+            Console.WriteLine("      i.e. SD:\\<filepath> to C:\\<filepath> OR C:\\<filepath> to SD:\\<filepath>.");
             //Console.WriteLine("-unfdebug (Runs the unf Debugger).");
             Console.WriteLine("-save=<savetype> (Runs the ROM with a save type when not matched in the internal database)");
             Console.WriteLine("      Options: [None,Eeprom4k,Eeprom16k,Sram,Sram768k,FlashRam,Sram128k].");
@@ -183,6 +185,14 @@ namespace ed64usb
                         case string x when x.StartsWith("-screen"):
                             Console.WriteLine("Reading Framebuffer.");
                             CommandProcessor.DumpScreenBuffer(ExtractSubArg(arg));
+                            break;
+
+                        case string x when x.StartsWith("-cp"):
+                            Console.WriteLine("Transferring file.");
+                            //TODO: check SubArg processing...
+                            //TODO: would not be able to handle spaces in path!
+                            var subargs = x.Split(' ');
+                            CommandProcessor.TransferFile(subargs[1], subargs[2]);
                             break;
 
                         default:

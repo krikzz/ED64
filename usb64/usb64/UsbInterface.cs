@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO.Ports;
+using System.Text;
 
 namespace ed64usb
 {
@@ -13,7 +14,7 @@ namespace ed64usb
         const int DEFAULT_BLOCK_SIZE = 32768;
 
 
-        private static void Read(byte[] data, int offset, int length)
+        public static void Read(byte[] data, int offset, int length)
         {
 
             while (length > 0)
@@ -37,7 +38,7 @@ namespace ed64usb
 
         }
 
-        private static void Write(byte[] data, int offset, int length)
+        public static void Write(byte[] data, int offset, int length)
         {
 
             while (length > 0)
@@ -57,6 +58,12 @@ namespace ed64usb
         public static void Write(byte[] data)
         {
             Write(data, 0, data.Length);
+        }
+
+        public static void Write(string str)
+        {
+            byte[] bytes = Encoding.ASCII.GetBytes(str);
+            Write(bytes);
         }
 
         private static void ProgressBarTimer_Update(int value)

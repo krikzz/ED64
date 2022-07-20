@@ -31,6 +31,10 @@ Arg: `-drom=<filename>`
 Generates an image from the frame buffer (in bitmap format)
 Arg `-screen=<filename>`
 
+### Transfer File
+Transfers a file between devices
+Arg `-cp <sourceFilePath> <destinationFilePath>
+
 
 ### Developer options:
 
