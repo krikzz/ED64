@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!--<TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">netcoreapp3.1;net5.0;net6.0;net45;net40</TargetFrameworks>-->
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net45;net6.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net6.0</TargetFrameworks>
+    <!--<TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net40;net45;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>-->
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net45;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
     <Authors>I. Golubovskiy, Robin Jones</Authors>
     <Company>Krikzz / NetworkFusion</Company>
     <Copyright>Copyright © Krikzz, NetworkFusion - 2020</Copyright>
