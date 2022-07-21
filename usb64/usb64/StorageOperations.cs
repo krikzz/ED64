@@ -339,7 +339,8 @@ namespace ed64usb
 
             return new FileInformation()
             {
-                Attributes = (FatFsFileAttributes)responseBytes[5],
+                FileName = path, // this is not returned over USB, so use the provided filename!
+                Attributes = (FatFsFileAttributes)responseBytes[5], //TODO: this is being returned as Archive... probably firmware issue!
                 // TODO: what are the 2 bytes that are not decoded?
                 FileSize = Int32FromBytes(responseBytes, 8), //responseBytes @ offset 8 (4 bytes)
                 ModifiedDateTime = new DosDateTime()
