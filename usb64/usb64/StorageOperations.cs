@@ -283,13 +283,12 @@ namespace ed64usb
 
         private static void FileOpen(string filePath, FatFsFileMode fileMode)
         {
-            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, filePath.Length, (uint)fileMode); //todo: check conversion of mode
+            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileOpen, 0, filePath.Length, (uint)fileMode); //todo: check conversion of mode
             UsbInterface.Write(filePath);
             var response = CommandProcessor.TestCommunication();
-            if (response != 0)
+            if (response != (int)FatFsReturnCode.FR_OK)
             {
-                // TODO: use FatFsReturnCode
-                throw new Exception($"File open error: 0x{BitConverter.ToString(new byte[] { response })}");
+                throw new Exception($"File open error: {((FatFsReturnCode)response).ToString()}");
             }
         }
 
@@ -299,10 +298,9 @@ namespace ed64usb
             UsbInterface.Read(fileData, offset, fileLength, DEFAULT_FILE_BLOCKSIZE);
 
             var response = CommandProcessor.TestCommunication();
-            if (response != 0)
+            if (response != (int)FatFsReturnCode.FR_OK)
             {
-                // TODO: use FatFsReturnCode
-                throw new Exception($"File read error: 0x{BitConverter.ToString(new byte[] { response })}");
+                throw new Exception($"File read error: {((FatFsReturnCode)response).ToString()}");
             }
         }
 
@@ -312,10 +310,9 @@ namespace ed64usb
             UsbInterface.Write(fileData, offset, fileLength, DEFAULT_FILE_BLOCKSIZE);
 
             var response = CommandProcessor.TestCommunication();
-            if (response != 0)
+            if (response != (int)FatFsReturnCode.FR_OK)
             {
-                // TODO: use FatFsReturnCode
-                throw new Exception($"File write error: 0x{BitConverter.ToString(new byte[] { response })}");
+                throw new Exception($"File write error: {((FatFsReturnCode)response).ToString()}");
             }
         }
 
@@ -323,10 +320,9 @@ namespace ed64usb
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileClose);
             var response = CommandProcessor.TestCommunication();
-            if (response != 0)
+            if (response != (int)FatFsReturnCode.FR_OK)
             {
-                // TODO: use FatFsReturnCode
-                throw new Exception($"File close error: 0x{BitConverter.ToString(new byte[] { response })}");
+                throw new Exception($"File close error: {((FatFsReturnCode)response).ToString()}");
             }
         }
 
@@ -336,10 +332,9 @@ namespace ed64usb
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, path.Length, 0);
             UsbInterface.Write(path);
             var responseBytes = CommandProcessor.CommandPacketReceive();
-            if (responseBytes[4] != 0)
+            if (responseBytes[4] != (int)FatFsReturnCode.FR_OK)
             {
-                // TODO: use FatFsReturnCode
-                throw new Exception($"File access error: 0x{BitConverter.ToString(new byte[] { responseBytes[4] })}");
+                throw new Exception($"File access error: { ((FatFsReturnCode)responseBytes[4]).ToString()}");
             }
 
             return new FileInformation()

@@ -54,6 +54,7 @@ namespace ed64usb
             short width = 320; //TODO: the OS menu only currently supports 320x240 resolution, but should be read from the appropriate RAM register for forward compatibility! 
             short height = 240;
 
+            // TODO: Perhaps this should be `1` now!!!
             var data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM (requires reading the whole 512 byte buffer, otherwise USB comms will fail)
             if (BitConverter.IsLittleEndian)
             {
@@ -381,7 +382,6 @@ namespace ed64usb
         /// <param name="argument">Optional</param>
         public static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
-            length /= 512; //Must take into account buffer size.
 
             var commandPacket = new List<byte>();
 
@@ -443,22 +443,22 @@ namespace ed64usb
 
         }
 
-        private static byte[] FixDataSize(byte[] data)
+        private static byte[] FixDataSize(byte[] data, int size = 512)
         {
-            if (data.Length % 512 != 0)
+            if (data.Length % size == 0)
             {
-                var buff = new byte[data.Length / 512 * 512 + 512];
-                for (int i = buff.Length - 512; i < buff.Length; i++)
+                return data;
+            }
+            else
+            { 
+                var buff = new byte[data.Length / size * size + size];
+                for (int i = buff.Length - size; i < buff.Length; i++)
                 {
-                    buff[i] = 0xff;
+                    buff[i] = byte.MaxValue;
                 }
                 Array.Copy(data, 0, buff, 0, data.Length);
 
                 return buff;
-            }
-            else
-            {
-                return data;
             }
         }
     }
