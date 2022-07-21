@@ -8,6 +8,91 @@ namespace ed64usb
     /// </summary>
     public static class StorageOperations
     {
+        const int DEFAULT_FILE_BLOCKSIZE = 4096;
+
+        private enum FatFsReturnCode
+        {
+            /// <summary>
+            /// (0) Succeeded
+            /// </summary>
+            FR_OK = 0,
+            /// <summary>
+            /// (1) A hard error occurred in the low level disk I/O layer
+            /// </summary>
+            FR_DISK_ERR,
+            /// <summary>
+            /// (2) Assertion failed
+            /// </summary>
+            FR_INT_ERR,
+            /// <summary>
+            /// (3) The physical drive cannot work
+            /// </summary>
+            FR_NOT_READY,
+            /// <summary>
+            /// (4) Could not find the file
+            /// </summary>
+            FR_NO_FILE,
+            /// <summary>
+            /// (5) Could not find the path
+            /// </summary>
+            FR_NO_PATH,
+            /// <summary>
+            /// (6) The path name format is invalid
+            /// </summary>
+            FR_INVALID_NAME,
+            /// <summary>
+            /// (7) Access denied due to prohibited access or directory full
+            /// </summary>
+            FR_DENIED,
+            /// <summary>
+            /// (8) Access denied due to prohibited access
+            /// </summary>
+            FR_EXIST,
+            /// <summary>
+            /// (9) The file/directory object is invalid
+            /// </summary>
+            FR_INVALID_OBJECT,
+            /// <summary>
+            /// (10) The physical drive is write protected
+            /// </summary>
+            FR_WRITE_PROTECTED,
+            /// <summary>
+            /// (11) The logical drive number is invalid
+            /// </summary>
+            FR_INVALID_DRIVE,
+            /// <summary>
+            /// (12) The volume has no work area
+            /// </summary>
+            FR_NOT_ENABLED,
+            /// <summary>
+            /// (13) There is no valid FAT volume
+            /// </summary>
+            FR_NO_FILESYSTEM,
+            /// <summary>
+            /// (14) The f_mkfs() aborted due to any parameter error
+            /// </summary>
+            FR_MKFS_ABORTED,
+            /// <summary>
+            /// (15) Could not get a grant to access the volume within defined period
+            /// </summary>
+            FR_TIMEOUT,
+            /// <summary>
+            /// (16) The operation is rejected according to the file sharing policy
+            /// </summary>
+            FR_LOCKED,
+            /// <summary>
+            /// (17) LFN working buffer could not be allocated
+            /// </summary>
+            FR_NOT_ENOUGH_CORE,
+            /// <summary>
+            /// (18) Number of open files > _FS_LOCK
+            /// </summary>
+            FR_TOO_MANY_OPEN_FILES,
+            /// <summary>
+            /// (19) Given parameter is invalid
+            /// </summary>
+            FR_INVALID_PARAMETER
+        }
 
         [Flags]
         private enum FatFsFileAttributes : byte
@@ -203,6 +288,7 @@ namespace ed64usb
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
+                // TODO: use FatFsReturnCode
                 throw new Exception($"File open error: 0x{BitConverter.ToString(new byte[] { response })}");
             }
         }
@@ -210,11 +296,12 @@ namespace ed64usb
         private static void FileRead(byte[] fileData, int offset, int fileLength)
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileRead, 0, fileLength, 0);
-            UsbInterface.Read(fileData, offset, fileLength, 4096);
+            UsbInterface.Read(fileData, offset, fileLength, DEFAULT_FILE_BLOCKSIZE);
 
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
+                // TODO: use FatFsReturnCode
                 throw new Exception($"File read error: 0x{BitConverter.ToString(new byte[] { response })}");
             }
         }
@@ -222,11 +309,12 @@ namespace ed64usb
         private static void FileWrite(byte[] fileData, int offset, int fileLength)
         {
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileWrite, 0, fileLength, 0);
-            UsbInterface.Write(fileData, offset, fileLength, 4096);
+            UsbInterface.Write(fileData, offset, fileLength, DEFAULT_FILE_BLOCKSIZE);
 
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
+                // TODO: use FatFsReturnCode
                 throw new Exception($"File write error: 0x{BitConverter.ToString(new byte[] { response })}");
             }
         }
@@ -237,6 +325,7 @@ namespace ed64usb
             var response = CommandProcessor.TestCommunication();
             if (response != 0)
             {
+                // TODO: use FatFsReturnCode
                 throw new Exception($"File close error: 0x{BitConverter.ToString(new byte[] { response })}");
             }
         }
@@ -249,6 +338,7 @@ namespace ed64usb
             var responseBytes = CommandProcessor.CommandPacketReceive();
             if (responseBytes[4] != 0)
             {
+                // TODO: use FatFsReturnCode
                 throw new Exception($"File access error: 0x{BitConverter.ToString(new byte[] { responseBytes[4] })}");
             }
 

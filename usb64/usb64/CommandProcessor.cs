@@ -26,7 +26,8 @@ namespace ed64usb
             RamRead = (byte)'r', //char RAM 'r' ead
             //RamWrite = (byte)'w', //char RAM 'w' rite
             FpgaWrite = (byte)'f', //char 'f' pga write
-            //FileTransfer = (byte)'c' //char File Transfer `c` opy
+
+            //File Commands:
             FileOpen = (byte)'0',
             FileRead = (byte)'1',
             FileWrite = (byte)'2',
@@ -410,19 +411,18 @@ namespace ed64usb
         public static byte[] CommandPacketReceive()
         {
 
-            var cmd = UsbInterface.Read(16);
-            if (Encoding.ASCII.GetString(cmd).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(cmd).ToLower().StartsWith("RSP"))
+            var receivedData = UsbInterface.Read(16);
+            if (Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("RSP"))
             {
-                switch ((ReceiveCommand)cmd[3])
+                switch ((ReceiveCommand)receivedData[3])
                 {
                     case ReceiveCommand.CommsReply:
-                        return cmd;
+                    case ReceiveCommand.CommsReplyFileInfo:
+                        return receivedData;
                     case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
                         throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
-                    case ReceiveCommand.CommsReplyFileInfo:
-                        return cmd;
                     default:
-                        throw new Exception("Unexpected response received from USB port.");
+                        throw new Exception($"Unexpected response received from USB port: 0x{BitConverter.ToString(new byte[] { receivedData[3] })}");
                 }
             }
             else
