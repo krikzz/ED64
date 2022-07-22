@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -189,13 +190,14 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-cp"):
                             Console.WriteLine("Transferring file...");
+                            Debug.WriteLine("Transferring file...");
                             //TODO: cannot handle spaces in path! Check escape using quotes.
-                            Console.WriteLine($"Arg count = {args.Length}");
+                            Debug.WriteLine($"Arg count = {args.Length}");
                             if (args.Length == 3)
                             {
                                 foreach (var str in args)
                                 {
-                                    Console.WriteLine($"subarg = {str}");
+                                    Debug.WriteLine($"subarg = {str}");
                                 }
                                 CommandProcessor.TransferFile(args[1], args[2]);
                             }
