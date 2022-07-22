@@ -37,6 +37,11 @@ namespace ed64usb
 
         }
 
+        public static void Read(byte[] data)
+        {
+            Read(data, 0, data.Length);
+        }
+
         public static void Write(byte[] data, int offset, int length, int blockSize = DEFAULT_BLOCK_SIZE)
         {
 

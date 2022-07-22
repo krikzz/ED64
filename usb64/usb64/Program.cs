@@ -189,7 +189,7 @@ namespace ed64usb
 
                         case string x when x.StartsWith("-cp"):
                             Console.WriteLine("Transferring file.");
-                            //TODO: would not be able to handle spaces in path!
+                            //TODO: would not be able to handle spaces in path! Check escape using quotes.
                             Console.WriteLine($"Arg count = {args.Length}");
                             foreach (var str in args)
                             {
@@ -205,10 +205,10 @@ namespace ed64usb
                                 Console.WriteLine();
                                 DrawProgramHelp();
                             }
-                            else if (File.Exists(arg))
+                            else if (args.Length == 1 && File.Exists(args[0]))
                             {
-                                Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start it.");
-                                CommandProcessor.LoadRom(arg);
+                                Console.WriteLine($"Presuming that '{Path.GetFileName(args[0])}' is a valid ROM. Will attempt to load and start it.");
+                                CommandProcessor.LoadRom(args[0]);
                                 CommandProcessor.StartRom(Path.GetFileName(arg));
                             }
                             break;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace ed64usb
@@ -214,6 +215,7 @@ namespace ed64usb
         /// <param name="destinationPath">the destination file or directory path</param>
         public static void FileCopy(string sourcePath, string destinationPath)
         {
+            Debug.WriteLine("Copying File...");
             sourcePath = sourcePath.Trim();
             destinationPath = destinationPath.Trim();
             if (!sourcePath.ToLower().StartsWith("sd:") && File.GetAttributes(sourcePath).HasFlag(FileAttributes.Directory))
@@ -236,9 +238,9 @@ namespace ed64usb
                 Console.WriteLine($"  FileSize {fileinfo.FileSize}");
                 Console.WriteLine($"  FileModified {new DateTime(fileinfo.ModifiedDateTime.Year, fileinfo.ModifiedDateTime.Month, fileinfo.ModifiedDateTime.Day, fileinfo.ModifiedDateTime.Hour, fileinfo.ModifiedDateTime.Minute, fileinfo.ModifiedDateTime.Second).ToString("o")}");
                 Console.WriteLine($"  FileAttributes {fileinfo.Attributes}");
-                fileData = new byte[fileinfo.FileSize];
+                fileData = new byte[fileinfo.FileSize + 1]; //TODO: for some reason requires the array to be 1 byte larger!
                 FileOpen(sourcePath, FatFsFileMode.Read);
-                FileRead(fileData, 0, fileData.Length);
+                FileRead(ref fileData, 0, fileData.Length);
                 FileClose();
             }
             else
@@ -260,6 +262,7 @@ namespace ed64usb
 
         private static void DirectoryCopy(string sourceDirectory, string destinationDirectory)
         {
+            Debug.WriteLine("Copying Directory...");
             if (!sourceDirectory.EndsWith("/"))
             {
                 sourceDirectory += "/";
@@ -283,6 +286,7 @@ namespace ed64usb
 
         private static void FileOpen(string filePath, FatFsFileMode fileMode)
         {
+            Debug.WriteLine("Opening File...");
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileOpen, 0, filePath.Length, (uint)fileMode); //todo: check conversion of mode
             UsbInterface.Write(filePath);
             var response = CommandProcessor.TestCommunication();
@@ -292,8 +296,9 @@ namespace ed64usb
             }
         }
 
-        private static void FileRead(byte[] fileData, int offset, int fileLength)
+        private static void FileRead(ref byte[] fileData, int offset, int fileLength)
         {
+            Debug.WriteLine("Reading File...");
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileRead, 0, fileLength, 0);
             UsbInterface.Read(fileData, offset, fileLength, DEFAULT_FILE_BLOCKSIZE);
 
@@ -306,6 +311,7 @@ namespace ed64usb
 
         private static void FileWrite(byte[] fileData, int offset, int fileLength)
         {
+            Debug.WriteLine("Writing File...");
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileWrite, 0, fileLength, 0);
             UsbInterface.Write(fileData, offset, fileLength, DEFAULT_FILE_BLOCKSIZE);
 
@@ -318,6 +324,7 @@ namespace ed64usb
 
         private static void FileClose()
         {
+            Debug.WriteLine("Closing File...");
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileClose);
             var response = CommandProcessor.TestCommunication();
             if (response != (int)FatFsReturnCode.FR_OK)
@@ -328,6 +335,7 @@ namespace ed64usb
 
         private static FileInformation GetFileInfo(string path)
         {
+            Debug.WriteLine("Getting File Information...");
 
             CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileInfo, 0, path.Length, 0);
             UsbInterface.Write(path);
