@@ -306,7 +306,7 @@ namespace ed64usb
         private static void FileDelete(string filePath)
         {
             Debug.WriteLine("Deleting File...");
-            throw new NotImplementedException("Deleting files is not yet available.")
+            throw new NotImplementedException("Deleting files is not yet available.");
             ////check file info(to make sure it exists)
             //CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileDelete, 0, filePath.Length);
             //UsbInterface.Write(filePath);
