@@ -119,8 +119,15 @@ namespace ed64usb
 
         private struct DosDateTime
         {
-            public ushort Date;
-            public ushort Time;
+            public ushort Date { get; set; }
+            public ushort Time { get; set; }
+
+            public DateTime DateAndTime
+            {
+                get => new DateTime(Year, Month, Day, Hour, Minute, Second);
+                // TODO: allow Dos DateTime set!
+
+            }
 
             public int Year
             {
@@ -171,32 +178,6 @@ namespace ed64usb
             /// </summary>
             public int FileSize { get; set; }
 
-            ///// <summary>
-            ///// The Date the file was last modified
-            ///// </summary>
-            ///// <remarks>
-            ///// bit15:9
-            ///// Year origin from 1980 (0..127)
-            ///// bit8:5
-            ///// Month(1..12)
-            ///// bit4:0
-            ///// Day(1..31)
-            ///// </remarks>
-            //public ushort ModifiedDate { get; set; } //TODO: Merge with time for DateTime (for C# goodness).
-
-            ///// <summary>
-            ///// The Time the file was last modified
-            ///// </summary>
-            ///// <remarks>
-            ///// bit15:11
-            ///// Hour(0..23)
-            ///// bit10:5
-            ///// Minute(0..59)
-            ///// bit4:0
-            ///// Second / 2 (0..29)
-            ///// </remarks>
-            //public ushort ModifiedTime { get; set; }
-
             /// <summary>
             /// The DateTime the file was last modified
             /// </summary>
@@ -236,9 +217,9 @@ namespace ed64usb
                 Console.WriteLine($"FileInformation for {sourcePath}");
                 Console.WriteLine($"  FileName {fileinfo.FileName}");
                 Console.WriteLine($"  FileSize {fileinfo.FileSize}");
-                Console.WriteLine($"  FileModified {new DateTime(fileinfo.ModifiedDateTime.Year, fileinfo.ModifiedDateTime.Month, fileinfo.ModifiedDateTime.Day, fileinfo.ModifiedDateTime.Hour, fileinfo.ModifiedDateTime.Minute, fileinfo.ModifiedDateTime.Second).ToString("o")}");
+                Console.WriteLine($"  FileModified {fileinfo.ModifiedDateTime.DateAndTime.ToString("o")}");
                 Console.WriteLine($"  FileAttributes {fileinfo.Attributes}");
-                fileData = new byte[fileinfo.FileSize + 1]; //TODO: for some reason requires the array to be 1 byte larger!
+                fileData = new byte[fileinfo.FileSize + 1]; //TODO: for some reason requires the array to be 1 byte larger! Perhaps a firmware bug?!
                 FileOpen(sourcePath, FatFsFileMode.Read);
                 FileRead(ref fileData, 0, fileData.Length);
                 FileClose();
@@ -250,7 +231,7 @@ namespace ed64usb
             if (destinationPath.ToLower().StartsWith("sd:"))
             {
                 destinationPath = destinationPath.Substring(3); // remove "sd:" from path
-                FileOpen(destinationPath, (FatFsFileMode)10); //(FatFsFileMode.CreateAlways | FatFsFileMode.Write)); //TODO: was 10, so presuming 0x0A to mean CreateAlways + Write!
+                FileOpen(destinationPath, (FatFsFileMode.CreateAlways | FatFsFileMode.Write));
                 FileWrite(fileData, 0, fileData.Length);
                 FileClose();
             }
@@ -287,7 +268,7 @@ namespace ed64usb
         private static void FileOpen(string filePath, FatFsFileMode fileMode)
         {
             Debug.WriteLine("Opening File...");
-            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileOpen, 0, filePath.Length, (uint)fileMode); //todo: check conversion of mode
+            CommandProcessor.CommandPacketTransmit(CommandProcessor.TransmitCommand.FileOpen, 0, filePath.Length, (uint)fileMode);
             UsbInterface.Write(filePath);
             var response = CommandProcessor.TestCommunication();
             if (response != (int)FatFsReturnCode.FR_OK)

@@ -188,14 +188,24 @@ namespace ed64usb
                             break;
 
                         case string x when x.StartsWith("-cp"):
-                            Console.WriteLine("Transferring file.");
-                            //TODO: would not be able to handle spaces in path! Check escape using quotes.
+                            Console.WriteLine("Transferring file...");
+                            //TODO: cannot handle spaces in path! Check escape using quotes.
                             Console.WriteLine($"Arg count = {args.Length}");
-                            foreach (var str in args)
+                            if (args.Length == 3)
                             {
-                                Console.WriteLine($"subarg = {str}");
+                                foreach (var str in args)
+                                {
+                                    Console.WriteLine($"subarg = {str}");
+                                }
+                                CommandProcessor.TransferFile(args[1], args[2]);
                             }
-                            CommandProcessor.TransferFile(args[1], args[2]);
+                            else
+                            {
+                                //string parms = string.Join(" ", args);
+                                //string[] arguments = parms.Split('\"');
+                                Console.WriteLine("Failed to transfer file:");
+                                Console.WriteLine("Cannot yet handle spaces in paths or filename.");
+                            }
                             break;
 
                         default:

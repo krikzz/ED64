@@ -11,11 +11,11 @@ namespace ed64usb
 
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
-        public const string MINIMUM_OS_VERSION = "3.05"; //TODO: now technically 3.07 due to storage operations. Could possibily handle (if we can interegate).
+        public const string MINIMUM_OS_VERSION = "3.05"; //TODO: now technically 3.07 due to storage operations. Could possibily handle (if we can interegate), but should be added to the comms test!.
         public const int MAX_ROM_SIZE = 0x4000000;
         public const int MIN_ROM_SIZE = 0x101000;
 
-        public enum TransmitCommand : byte // TODO: why not char?
+        public enum TransmitCommand : byte
         {
             RomFillCartridgeSpace = (byte)'c', //char ROM fill 'c' artridge space
             RomRead = (byte)'R', //char ROM 'R' ead
