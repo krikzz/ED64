@@ -13,85 +13,85 @@ namespace ed64usb
         private enum FatFsReturnCode
         {
             /// <summary>
-            /// (0) Succeeded
+            /// Succeeded
             /// </summary>
             FR_OK = 0,
             /// <summary>
-            /// (1) A hard error occurred in the low level disk I/O layer
+            /// A hard error occurred in the low level disk I/O layer
             /// </summary>
-            FR_DISK_ERR,
+            FR_DISK_ERR = 1,
             /// <summary>
-            /// (2) Assertion failed
+            /// Assertion failed
             /// </summary>
-            FR_INT_ERR,
+            FR_INT_ERR = 2,
             /// <summary>
-            /// (3) The physical drive cannot work
+            /// The physical drive cannot work
             /// </summary>
-            FR_NOT_READY,
+            FR_NOT_READY = 3,
             /// <summary>
-            /// (4) Could not find the file
+            /// Could not find the file
             /// </summary>
-            FR_NO_FILE,
+            FR_NO_FILE = 4,
             /// <summary>
-            /// (5) Could not find the path
+            /// Could not find the path
             /// </summary>
-            FR_NO_PATH,
+            FR_NO_PATH = 5,
             /// <summary>
-            /// (6) The path name format is invalid
+            /// The path name format is invalid
             /// </summary>
-            FR_INVALID_NAME,
+            FR_INVALID_NAME = 6,
             /// <summary>
-            /// (7) Access denied due to prohibited access or directory full
+            /// Access denied due to prohibited access or directory full
             /// </summary>
-            FR_DENIED,
+            FR_DENIED = 7,
             /// <summary>
-            /// (8) Access denied due to prohibited access
+            /// Access denied due to prohibited access
             /// </summary>
-            FR_EXIST,
+            FR_EXIST = 8,
             /// <summary>
-            /// (9) The file/directory object is invalid
+            /// The file/directory object is invalid
             /// </summary>
-            FR_INVALID_OBJECT,
+            FR_INVALID_OBJECT = 9,
             /// <summary>
-            /// (10) The physical drive is write protected
+            /// The physical drive is write protected
             /// </summary>
-            FR_WRITE_PROTECTED,
+            FR_WRITE_PROTECTED = 10,
             /// <summary>
-            /// (11) The logical drive number is invalid
+            /// The logical drive number is invalid
             /// </summary>
-            FR_INVALID_DRIVE,
+            FR_INVALID_DRIVE = 11,
             /// <summary>
-            /// (12) The volume has no work area
+            /// The volume has no work area
             /// </summary>
-            FR_NOT_ENABLED,
+            FR_NOT_ENABLED = 12,
             /// <summary>
-            /// (13) There is no valid FAT volume
+            /// There is no valid FAT volume
             /// </summary>
-            FR_NO_FILESYSTEM,
+            FR_NO_FILESYSTEM = 13,
             /// <summary>
-            /// (14) The f_mkfs() aborted due to any parameter error
+            /// The f_mkfs() aborted due to any parameter error
             /// </summary>
-            FR_MKFS_ABORTED,
+            FR_MKFS_ABORTED = 14,
             /// <summary>
-            /// (15) Could not get a grant to access the volume within defined period
+            /// Could not get a grant to access the volume within defined period
             /// </summary>
-            FR_TIMEOUT,
+            FR_TIMEOUT = 15,
             /// <summary>
-            /// (16) The operation is rejected according to the file sharing policy
+            /// The operation is rejected according to the file sharing policy
             /// </summary>
-            FR_LOCKED,
+            FR_LOCKED = 16,
             /// <summary>
-            /// (17) LFN working buffer could not be allocated
+            /// LFN working buffer could not be allocated
             /// </summary>
-            FR_NOT_ENOUGH_CORE,
+            FR_NOT_ENOUGH_CORE = 17,
             /// <summary>
-            /// (18) Number of open files > _FS_LOCK
+            /// Number of open files > _FS_LOCK
             /// </summary>
-            FR_TOO_MANY_OPEN_FILES,
+            FR_TOO_MANY_OPEN_FILES = 18,
             /// <summary>
-            /// (19) Given parameter is invalid
+            /// Given parameter is invalid
             /// </summary>
-            FR_INVALID_PARAMETER
+            FR_INVALID_PARAMETER = 19
         }
 
         [Flags]
