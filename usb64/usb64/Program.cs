@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -35,6 +36,8 @@ namespace ed64usb
             Console.WriteLine("-diag (Runs communications diagnostics.");
             Console.WriteLine("-drom=<filename> (Dumps loaded ROM to PC).");
             Console.WriteLine("-screen=<filename> (Dumps framebuffer as BMP to PC).");
+            Console.WriteLine("-cp <source filepath> <destination filepath> (Copies a file between devices.");
+            Console.WriteLine("      i.e. SD:\\<filepath> to C:\\<filepath> OR C:\\<filepath> to SD:\\<filepath>.");
             //Console.WriteLine("-unfdebug (Runs the unf Debugger).");
             Console.WriteLine("-save=<savetype> (Runs the ROM with a save type when not matched in the internal database)");
             Console.WriteLine("      Options: [None,Eeprom4k,Eeprom16k,Sram,Sram768k,FlashRam,Sram128k].");
@@ -185,6 +188,28 @@ namespace ed64usb
                             CommandProcessor.DumpScreenBuffer(ExtractSubArg(arg));
                             break;
 
+                        case string x when x.StartsWith("-cp"):
+                            Console.WriteLine("Transferring file...");
+                            Debug.WriteLine("Transferring file...");
+                            //TODO: cannot handle spaces in path! Check escape using quotes.
+                            Debug.WriteLine($"Arg count = {args.Length}");
+                            if (args.Length == 3)
+                            {
+                                foreach (var str in args)
+                                {
+                                    Debug.WriteLine($"subarg = {str}");
+                                }
+                                CommandProcessor.TransferFile(args[1], args[2]);
+                            }
+                            else
+                            {
+                                //string parms = string.Join(" ", args);
+                                //string[] arguments = parms.Split('\"');
+                                Console.WriteLine("Failed to transfer file:");
+                                Console.WriteLine("Cannot yet handle spaces in paths or filename.");
+                            }
+                            break;
+
                         default:
                             if (arg.StartsWith("-"))
                             {
@@ -192,10 +217,10 @@ namespace ed64usb
                                 Console.WriteLine();
                                 DrawProgramHelp();
                             }
-                            else if (File.Exists(arg))
+                            else if (args.Length == 1 && File.Exists(args[0]))
                             {
-                                Console.WriteLine($"Presuming that '{Path.GetFileName(arg)}' is a valid ROM. Will attempt to load and start it.");
-                                CommandProcessor.LoadRom(arg);
+                                Console.WriteLine($"Presuming that '{Path.GetFileName(args[0])}' is a valid ROM. Will attempt to load and start it.");
+                                CommandProcessor.LoadRom(args[0]);
                                 CommandProcessor.StartRom(Path.GetFileName(arg));
                             }
                             break;

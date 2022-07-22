@@ -6,23 +6,23 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        dotnet: [ 'net40', 'net45', 'netcoreapp3.1', 'net5.0' ]
+        # dotnet: [ 'net40', 'net45', 'netcoreapp3.1', 'net6.0' ]
+        dotnet: [ 'net45', 'netcoreapp3.1', 'net6.0' ]
     name: Build ${{ matrix.dotnet }} usb64 App
     steps:
       - uses: actions/checkout@v2
         name: Checkout Code
-     
+
       - name: Setup .NET Core 3.1
-        uses: actions/setup-dotnet@v1
+        if: matrix.dotnet == 'netcoreapp3.1'
+        uses: actions/setup-dotnet@v2
         with:
           dotnet-version: 3.1.x
-      - name: Setup .NET Core 5.0
-        uses: actions/setup-dotnet@v1
+      - name: Setup .NET 6.0
+        if: matrix.dotnet == 'net6.0'
+        uses: actions/setup-dotnet@v2
         with:
-          dotnet-version: 5.0.x
-
-      # - name: Setup MSBuild Path
-      #   uses: microsoft/setup-msbuild@v1.0.2
+          dotnet-version: 6.0.x
         
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v1.0.5
@@ -30,16 +30,13 @@ jobs:
       - name: Restore NuGet Packages
         run: nuget restore ./usb64/usb64.sln
   
-      # - name: Build App
-      #   run: msbuild ./usb64/usb64.sln /p:Configuration=Release /p:framework=${{ matrix.dotnet }}
-
       - name: Build App
         run: dotnet build ./usb64/usb64.sln --configuration Release --no-restore --framework ${{ matrix.dotnet }}
-      #- name: Test App
-      #  run: dotnet test
   
       - name: Upload Artifact
-        uses: actions/upload-artifact@v1.0.0
+        uses: actions/upload-artifact@v2
         with:
           name: usb64-${{ matrix.dotnet }}-app-windows
-          path: ${{ github.workspace }}\usb64\usb64\bin\Release\${{ matrix.dotnet }}\usb64.exe
+          path: |
+            ${{ github.workspace }}\usb64\usb64\bin\Release\${{ matrix.dotnet }}\usb64.exe
+            ${{ github.workspace }}\usb64\usb64\bin\Release\${{ matrix.dotnet }}\usb64.dll

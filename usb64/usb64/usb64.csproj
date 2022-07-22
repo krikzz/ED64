@@ -2,28 +2,35 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">netcoreapp3.1;net5.0;net45;net40</TargetFrameworks>
-    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1;net5.0</TargetFrameworks>
-    <Authors>Krikzz / NetworkFusion</Authors>
-    <Company>Krikzz</Company>
-    <Copyright>Copyright © Krikzz, NetworkFusion 2020-2021</Copyright>
+    <!--<TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net40;net45;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>-->
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net45;netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+    <Authors>I. Golubovskiy, Robin Jones</Authors>
+    <Company>Krikzz / NetworkFusion</Company>
+    <Copyright>Copyright © Krikzz, NetworkFusion - 2020</Copyright>
     <PackageProjectUrl>https://github.com/krikzz/ED64/</PackageProjectUrl>
-    <AssemblyVersion>2.0.0.3</AssemblyVersion>
-    <FileVersion>2.0.0.3</FileVersion>
+    <AssemblyVersion>2.0.0.4</AssemblyVersion>
+    <FileVersion>2.0.0.4</FileVersion>
     <RootNamespace>ed64usb</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+    <PackageReference Include="System.IO.Ports" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net5.0' ">
     <PackageReference Include="System.IO.Ports" Version="5.0.0" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <PackageReference Include="System.IO.Ports" Version="5.0.0" />
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' Or '$(TargetFramework)' == 'net40'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net45'">
     <DefineConstants>NET45;NETFULL</DefineConstants>
   </PropertyGroup>
-
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net40'">
     <DefineConstants>NET40;NETFULL</DefineConstants>
   </PropertyGroup>

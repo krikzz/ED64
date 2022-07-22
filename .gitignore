@@ -74,6 +74,9 @@ build/
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# User specific launch configurations
+**/[Pp]roperties/launch[Ss]ettings.json
+
 # User-specific files
 *.rsuser
 *.suo

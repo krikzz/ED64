@@ -11,11 +11,11 @@ namespace ed64usb
 
         public const uint ROM_BASE_ADDRESS = 0x10000000; //X-Series only
         public const uint RAM_BASE_ADDRESS = 0x80000000; //X-Series only
-        public const string MINIMUM_OS_VERSION = "3.05";
+        public const string MINIMUM_OS_VERSION = "3.05"; //TODO: now technically 3.07 due to storage operations. Could possibily handle (if we can interegate), but should be added to the comms test!.
         public const int MAX_ROM_SIZE = 0x4000000;
         public const int MIN_ROM_SIZE = 0x101000;
 
-        private enum TransmitCommand : byte
+        public enum TransmitCommand : byte
         {
             RomFillCartridgeSpace = (byte)'c', //char ROM fill 'c' artridge space
             RomRead = (byte)'R', //char ROM 'R' ead
@@ -25,14 +25,21 @@ namespace ed64usb
 
             RamRead = (byte)'r', //char RAM 'r' ead
             //RamWrite = (byte)'w', //char RAM 'w' rite
-            FpgaWrite = (byte)'f' //char 'f' pga write
+            FpgaWrite = (byte)'f', //char 'f' pga write
 
+            //File Commands:
+            FileOpen = (byte)'0',
+            FileRead = (byte)'1',
+            FileWrite = (byte)'2',
+            FileClose = (byte)'3',
+            FileInfo = (byte)'4'
         }
 
         public enum ReceiveCommand : byte
         {
             CommsReply = (byte)'r',
             CommsReplyLegacy = (byte)'k',
+            CommsReplyFileInfo = (byte)'4'
 
         }
 
@@ -47,6 +54,7 @@ namespace ed64usb
             short width = 320; //TODO: the OS menu only currently supports 320x240 resolution, but should be read from the appropriate RAM register for forward compatibility! 
             short height = 240;
 
+            // TODO: Perhaps this should be `1` now!!!
             var data = RamRead(0xA4400004, 512); // get the framebuffer address from its pointer in cartridge RAM (requires reading the whole 512 byte buffer, otherwise USB comms will fail)
             if (BitConverter.IsLittleEndian)
             {
@@ -308,6 +316,26 @@ namespace ed64usb
 
         }
 
+        /// <summary>
+        /// Copies a file between devices.
+        /// </summary>
+        /// <param name="srcFilePath">The filename to copy from</param>
+        /// <param name="dstFilePath">The filename to copy to</param>
+        public static void TransferFile(string srcFilePath = "", string dstFilePath = "")
+        {
+            if (string.IsNullOrEmpty(srcFilePath))
+            {
+                throw new Exception("source file path is invalid");
+            }
+            else if (string.IsNullOrEmpty(dstFilePath))
+            {
+                throw new Exception("destination file path is invalid");
+            }
+            else 
+            {
+                StorageOperations.FileCopy(srcFilePath, dstFilePath);
+            }
+        }
 
         private static void FillCartridgeRomSpace(int romLength, uint value)
         {
@@ -326,10 +354,10 @@ namespace ed64usb
         /// <summary>
         /// Test that USB port is able to transmit and receive
         /// </summary>
-        public static void TestCommunication()
+        public static byte TestCommunication()
         {
             CommandPacketTransmit(TransmitCommand.TestConnection);
-            CommandPacketReceive();
+            return CommandPacketReceive()[4];
         }
 
         private static bool IsBootLoader(byte[] data)
@@ -352,9 +380,8 @@ namespace ed64usb
         /// <param name="address">Optional</param>
         /// <param name="length">Optional </param>
         /// <param name="argument">Optional</param>
-        private static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
+        public static void CommandPacketTransmit(TransmitCommand commandType, uint address = 0, int length = 0, uint argument = 0)
         {
-            length /= 512; //Must take into account buffer size.
 
             var commandPacket = new List<byte>();
 
@@ -380,26 +407,43 @@ namespace ed64usb
         /// <summary>
         /// Receives a command response from the USB port
         /// </summary>
+        /// <param name="ignoreReceiveCommand">Ignores the check of byte 4</param>
+        /// <param name="ignoreHeaderCheck">Ignores the check for bytes 1-3</param>
         /// <returns>the full response in bytes</returns>
-        private static byte[] CommandPacketReceive()
+        public static byte[] CommandPacketReceive(bool ignoreReceiveCommand = false, bool ignoreHeaderCheck = false)
         {
 
-            var cmd = UsbInterface.Read(16);
-            if (Encoding.ASCII.GetString(cmd).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(cmd).ToLower().StartsWith("RSP"))
+            var receivedData = UsbInterface.Read(16);
+            if (!ignoreHeaderCheck)
             {
-                switch ((ReceiveCommand)cmd[3])
+                if (Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("RSP"))
                 {
-                    case ReceiveCommand.CommsReply:
-                        return cmd;
-                    case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
-                        throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
-                    default:
-                        throw new Exception("Unexpected response received from USB port.");
+                    if (ignoreReceiveCommand)
+                    {
+                        return receivedData;
+                    }
+                    else
+                    {
+                        switch ((ReceiveCommand)receivedData[3])
+                        {
+                            case ReceiveCommand.CommsReply:
+                            case ReceiveCommand.CommsReplyFileInfo:
+                                return receivedData;
+                            case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
+                                throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
+                            default:
+                                throw new Exception($"Unexpected response received from USB port: 0x{BitConverter.ToString(new byte[] { receivedData[3] })}");
+                        }
+                    }
+                }
+                else
+                {
+                    throw new Exception("Corrupted response received from USB port.");
                 }
             }
             else
             {
-                throw new Exception("Corrupted response received from USB port.");
+                return receivedData;
             }
         }
 
@@ -415,22 +459,22 @@ namespace ed64usb
 
         }
 
-        private static byte[] FixDataSize(byte[] data)
+        private static byte[] FixDataSize(byte[] data, int size = 512)
         {
-            if (data.Length % 512 != 0)
+            if (data.Length % size == 0)
             {
-                var buff = new byte[data.Length / 512 * 512 + 512];
-                for (int i = buff.Length - 512; i < buff.Length; i++)
+                return data;
+            }
+            else
+            { 
+                var buff = new byte[data.Length / size * size + size];
+                for (int i = buff.Length - size; i < buff.Length; i++)
                 {
-                    buff[i] = 0xff;
+                    buff[i] = byte.MaxValue;
                 }
                 Array.Copy(data, 0, buff, 0, data.Length);
 
                 return buff;
-            }
-            else
-            {
-                return data;
             }
         }
     }
