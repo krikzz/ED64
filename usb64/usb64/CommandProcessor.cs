@@ -407,27 +407,43 @@ namespace ed64usb
         /// <summary>
         /// Receives a command response from the USB port
         /// </summary>
+        /// <param name="ignoreReceiveCommand">Ignores the check of byte 4</param>
+        /// <param name="ignoreHeaderCheck">Ignores the check for bytes 1-3</param>
         /// <returns>the full response in bytes</returns>
-        public static byte[] CommandPacketReceive()
+        public static byte[] CommandPacketReceive(bool ignoreReceiveCommand = false, bool ignoreHeaderCheck = false)
         {
 
             var receivedData = UsbInterface.Read(16);
-            if (Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("RSP"))
+            if (!ignoreHeaderCheck)
             {
-                switch ((ReceiveCommand)receivedData[3])
+                if (Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("cmd") || Encoding.ASCII.GetString(receivedData).ToLower().StartsWith("RSP"))
                 {
-                    case ReceiveCommand.CommsReply:
-                    case ReceiveCommand.CommsReplyFileInfo:
+                    if (ignoreReceiveCommand)
+                    {
                         return receivedData;
-                    case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
-                        throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
-                    default:
-                        throw new Exception($"Unexpected response received from USB port: 0x{BitConverter.ToString(new byte[] { receivedData[3] })}");
+                    }
+                    else
+                    {
+                        switch ((ReceiveCommand)receivedData[3])
+                        {
+                            case ReceiveCommand.CommsReply:
+                            case ReceiveCommand.CommsReplyFileInfo:
+                                return receivedData;
+                            case ReceiveCommand.CommsReplyLegacy: //Certain ROM's may reply that used the old OSes without case sensitivity on the test commnad, this ensures they are handled.
+                                throw new Exception($"Outdated OS, please update to {MINIMUM_OS_VERSION} or above!");
+                            default:
+                                throw new Exception($"Unexpected response received from USB port: 0x{BitConverter.ToString(new byte[] { receivedData[3] })}");
+                        }
+                    }
+                }
+                else
+                {
+                    throw new Exception("Corrupted response received from USB port.");
                 }
             }
             else
             {
-                throw new Exception("Corrupted response received from USB port.");
+                return receivedData;
             }
         }
 
